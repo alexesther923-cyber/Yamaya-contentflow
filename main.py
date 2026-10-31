@@ -2,7 +2,8 @@
 # My first Python Project 
 print("Welcome to Yamaya ContentFlow!") 
 print("Your AI assisted content planning assistant")
-# collect information from the user topic  = input("Enter your content topic")
+# collect information from the user 
+topic  = input("Enter your content topic")
 audience = input("Who is your target audience? ")
 format_type = input("What content format do you want? ")
 tone = input("What tone should the content have?")
