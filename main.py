@@ -30,3 +30,36 @@ print("- Review the hook and main message")
 print("- Check the call to action")
 
 print("\nYour first content brief is ready!")
+# Generate content hooks
+print("\n========== CONTENT HOOK GENERATOR ==========")
+
+hooks = [
+    f"Nobody talks enough about {topic}. Let's discuss!",
+    f"If you're part of {audience}, this is for you!",
+    f"Let's be honest: we need to talk about {topic}."
+]
+
+for number, hook in enumerate(hooks, start=1):
+    print(f"HOOK {number}: {hook}")
+
+# Generate a caption
+print("\n========== SUGGESTED CAPTION ==========")
+
+caption = f"""
+Let's talk about {topic}!
+
+This one is for {audience}.
+
+Whether you are learning, experiencing it
+or simply curious, there's something here
+worth discussing.
+
+What do you think? Share your thoughts
+in the comments!
+
+#YamayaAfrique #NigerianYouth #YouthCulture
+"""
+
+print(caption)
+
+print("Your content suggestions are ready!")
