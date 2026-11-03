@@ -1,3 +1,4 @@
+
 # YAMAYA CONTENTFLOW
 # Gemini AI Content Generator
 
@@ -40,15 +41,15 @@ def generate_content_ideas(topic, audience, format_type, tone):
 
     # Generate content using Gemini
     try:
-    response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
-        contents=prompt
-    )
+        response = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt
+        )
 
-    return response.text
+        return response.text
 
-except Exception as error:
-    return (
-        f"Gemini request failed: "
-        f"{type(error).__name__}: {error}"
-    )
+    except Exception as error:
+        return (
+            f"Gemini request failed: "
+            f"{type(error).__name__}: {error}"
+        )
