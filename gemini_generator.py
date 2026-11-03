@@ -17,105 +17,144 @@ def generate_content_ideas(topic, audience, format_type, tone):
     # Connect to Gemini
     client = genai.Client(api_key=api_key)
 
-    # Content generation instructions
-    prompt = f"""
-You are the senior content strategist and creative writer
-for Yamaya Afrique.
+    model = "gemini-3.5-flash-lite"
 
-BRAND IDENTITY:
+    # STAGE 1: Generate five content ideas
+    ideas_prompt = f"""
+You are the senior content strategist for Yamaya Afrique,
+a Nigerian digital publication covering youth culture,
+lifestyle and entertainment.
+
+BRAND VOICE:
+- Authentic African Gen Z storytelling.
+- Witty, relatable and culturally aware.
+- Conversational and intelligent.
+- Funny when appropriate, without forcing slang.
+- Natural, never robotic.
+
+CONTENT BRIEF:
+Topic: {topic}
+Target audience: {audience}
+Format: {format_type}
+Preferred tone: {tone}
+
+TASK:
+Generate exactly FIVE original content ideas.
+
+For each idea, include:
+1. A catchy headline.
+2. A short description.
+3. An engaging opening hook.
+
+EDITORIAL RULES:
+- Avoid repetitive or predictable ideas.
+- Do not invent statistics or specific cultural facts.
+- Avoid stereotypes and forced slang.
+- Make the ideas relevant to the audience.
+- Keep the ideas practical for a Nigerian digital publication.
+
+Return only the five numbered ideas.
+"""
+
+    try:
+        ideas_response = client.models.generate_content(
+            model=model,
+            contents=ideas_prompt
+        )
+
+        ideas = ideas_response.text
+
+        if not ideas:
+            return "The AI did not return any content ideas. Please try again."
+
+        # STAGE 2: Develop the strongest idea
+        development_prompt = f"""
+You are the senior creative editor for Yamaya Afrique.
+
 Yamaya Afrique is a Nigerian digital publication covering
 youth culture, lifestyle and entertainment.
 
-Our voice is:
+BRAND VOICE:
 - Authentic African Gen Z storytelling.
 - Witty, relatable and culturally aware.
 - Conversational, intelligent and entertaining.
+- Natural rather than robotic.
 - Funny when appropriate, without forcing slang.
-- Natural rather than robotic or overly promotional.
 
 CONTENT BRIEF:
-
 Topic: {topic}
 Target audience: {audience}
 Content format: {format_type}
 Preferred tone: {tone}
 
+THE FIVE IDEAS GENERATED:
+{ideas}
+
 YOUR TASK:
 
-PART 1: CONTENT IDEAS
+Select the strongest idea from the five ideas above.
+Explain briefly why it is the strongest.
 
-Generate 5 original content ideas based on the topic.
+Then develop that idea into a complete, publication-ready
+content draft.
 
-For each idea, provide:
-1. A catchy headline.
-2. A short description.
-3. An engaging opening hook.
+IF THE FORMAT IS CAROUSEL:
+1. Write an attention-grabbing cover slide.
+2. Create 6-8 engaging content slides.
+3. Give each slide a clear heading and complete copy.
+4. End with a strong closing slide and CTA.
+5. Make the slides flow naturally from beginning to end.
 
-Avoid repetitive, generic or predictable ideas.
+IF THE FORMAT IS REEL:
+1. Write a strong opening hook.
+2. Create a complete 30-60 second video script.
+3. Include suggested scenes and visual directions.
+4. Include on-screen text.
+5. End with a relevant CTA.
 
-PART 2: DEVELOP THE BEST IDEA
+ALSO PROVIDE:
 
-Choose the strongest of the five ideas and develop it
-into a complete piece of content.
+CAPTION:
+Write a natural caption that complements the content
+and encourages conversation.
 
-If the selected format is CAROUSEL:
+CALL TO ACTION:
+Provide one clear, relevant CTA.
 
-1. Cover slide with an attention-grabbing headline.
-2. Six to eight informative and engaging slides.
-3. A strong closing slide with a clear CTA.
-4. Make every slide interesting enough to encourage
-   the audience to keep swiping.
-
-If the selected format is REEL:
-
-1. A strong opening hook.
-2. A complete 30-60 second video script.
-3. Suggested visual directions and scenes.
-4. On-screen text.
-5. A closing CTA.
-
-PART 3: CAPTION
-
-Write a natural social media caption that:
-- Complements the content.
-- Sounds like Yamaya Afrique.
-- Encourages conversation and engagement.
-- Avoids generic AI-sounding expressions.
-
-PART 4: CALL TO ACTION
-
-Provide one clear and relevant CTA.
-
-PART 5: HASHTAGS
-
+HASHTAGS:
 Suggest 5-8 relevant hashtags.
 
-IMPORTANT EDITORIAL RULES:
+EDITORIAL RULES:
+- Stay relevant to the topic and audience.
+- Do not invent statistics, events or specific experiences.
+- Avoid stereotypes and forced Nigerian slang.
+- Avoid generic AI-sounding expressions.
+- Do not repeat the same point unnecessarily.
+- Keep the content practical for a real editorial team.
 
-- Do not invent specific campus experiences, locations,
-  statistics or cultural facts.
-- Avoid stereotypes about Nigerian students or young people.
-- Do not use forced Nigerian slang.
-- Avoid unnecessarily offensive or inappropriate content.
-- Keep the content relevant to the stated audience.
-- Prioritise originality, clarity and shareability.
-- Do not repeat the same idea in different words.
-
-Use clear headings and organise the output for easy
-use by a social media content team.
-
-Remember: The final content should feel like something
-a real Yamaya Afrique editorial team would publish.
+Use clear headings and organise the output properly.
 """
 
-    # Generate content using Gemini
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.5-flash-lite",
-            contents=prompt
+        development_response = client.models.generate_content(
+            model=model,
+            contents=development_prompt
         )
 
-        return response.text
+        developed_content = development_response.text
+
+        if not developed_content:
+            return (
+                "Five ideas were generated, but the full content "
+                "could not be developed. Please try again."
+            )
+
+        # Combine both stages
+        return (
+            "========== FIVE CONTENT IDEAS ==========\n\n"
+            + ideas
+            + "\n\n========== DEVELOPED CONTENT ==========\n\n"
+            + developed_content
+        )
 
     except Exception as error:
         return (
