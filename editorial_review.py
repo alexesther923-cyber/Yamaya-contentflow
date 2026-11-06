@@ -159,6 +159,37 @@ STRICT REVIEW RULES:
 
 - A lack of obvious issues does not mean the content
   has been fact-checked.
+  PART 4: FINAL EDITORIAL STATUS
+
+Choose exactly ONE status:
+
+1. APPROVED FOR EDITORIAL QUALITY
+No significant writing, clarity or brand alignment
+problems were identified. This does not mean facts
+have been verified.
+
+2. REVISION REQUIRED
+Writing, clarity, tone, structure or brand alignment
+problems need correction.
+
+3. HUMAN VERIFICATION REQUIRED
+Important factual, scientific, technical, health-related
+or product-related claims lack sufficient evidence.
+
+4. DO NOT PUBLISH
+Serious misleading claims, dangerous misinformation,
+fabricated evidence or unsupported guarantees remain.
+
+STATUS SELECTION RULES:
+
+- Choose the most serious applicable status.
+- If content needs revision and fact-checking,
+  prioritise HUMAN VERIFICATION REQUIRED.
+- If serious misleading or potentially harmful claims
+  remain, choose DO NOT PUBLISH.
+- Never approve content merely because it is well written.
+- Never describe AI review as proof of factual accuracy.
+- Briefly explain why the selected status was chosen.
 """
 
     try:
