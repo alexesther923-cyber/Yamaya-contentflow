@@ -1,9 +1,6 @@
-
-# YAMAYA CONTENTFLOW
-# AI-Powered Content Strategy and Generation Tool
-
 import os
 from google import genai
+from brand_profiles import get_brand_profile
 
 
 def generate_content_ideas(topic, audience, format_type, tone):
