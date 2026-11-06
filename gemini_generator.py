@@ -86,17 +86,19 @@ Return only the five numbered ideas.
 
         # STAGE 2: Develop the strongest idea
         development_prompt = f"""
-You are the senior creative editor for Yamaya Afrique.
+You are the senior creative editor for {brand_profile["brand_name"]}.
 
-Yamaya Afrique is a Nigerian digital publication covering
-youth culture, lifestyle and entertainment.
+BRAND DESCRIPTION:
+{brand_description}
+
+TARGET AUDIENCE:
+{brand_audience}
 
 BRAND VOICE:
-- Authentic African Gen Z storytelling.
-- Witty, relatable and culturally aware.
-- Conversational, intelligent and entertaining.
-- Natural rather than robotic.
-- Funny when appropriate, without forcing slang.
+{brand_voice}
+
+WRITING GUIDELINES:
+{writing_guidelines}
 
 CONTENT BRIEF:
 Topic: {topic}
@@ -110,17 +112,17 @@ THE FIVE IDEAS GENERATED:
 YOUR TASK:
 
 Select the strongest idea from the five ideas above.
-Explain briefly why it is the strongest.
+Briefly explain why it is the strongest.
 
-Then develop that idea into a complete, publication-ready
-content draft.
+Develop that idea into a complete content draft suitable
+for the selected brand.
 
 IF THE FORMAT IS CAROUSEL:
 1. Write an attention-grabbing cover slide.
 2. Create 6-8 engaging content slides.
 3. Give each slide a clear heading and complete copy.
 4. End with a strong closing slide and CTA.
-5. Make the slides flow naturally from beginning to end.
+5. Make the slides flow naturally.
 
 IF THE FORMAT IS REEL:
 1. Write a strong opening hook.
@@ -132,8 +134,7 @@ IF THE FORMAT IS REEL:
 ALSO PROVIDE:
 
 CAPTION:
-Write a natural caption that complements the content
-and encourages conversation.
+Write a natural caption that complements the content.
 
 CALL TO ACTION:
 Provide one clear, relevant CTA.
@@ -142,12 +143,12 @@ HASHTAGS:
 Suggest 5-8 relevant hashtags.
 
 EDITORIAL RULES:
-- Stay relevant to the topic and audience.
-- Do not invent statistics, events or specific experiences.
-- Avoid stereotypes and forced Nigerian slang.
+- Follow the selected brand's identity and writing guidelines.
+- Avoid unsupported statistics, claims and invented experiences.
+- Do not fabricate quotes or research findings.
 - Avoid generic AI-sounding expressions.
-- Do not repeat the same point unnecessarily.
-- Keep the content practical for a real editorial team.
+- Avoid unnecessary repetition.
+- Keep the content practical for the selected brand.
 
 Use clear headings and organise the output properly.
 """
