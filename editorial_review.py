@@ -159,6 +159,7 @@ STRICT REVIEW RULES:
 
 - A lack of obvious issues does not mean the content
   has been fact-checked.
+"""
 
     try:
         response = client.models.generate_content(
