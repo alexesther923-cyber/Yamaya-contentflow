@@ -121,39 +121,44 @@ STRICT REVIEW RULES:
 
 - Do not invent statistics, research findings, sources,
   citations, quotations or URLs.
+
 - Do not claim that you searched or checked external
   research when you did not.
-- Do not present your own scientific assumptions as facts.
-- Do not introduce new health, haircare or product claims
-  that were not supported by the submitted content.
+
+- Never present an unsupported scientific, technical,
+  health-related or product-related statement as an
+  established fact.
+
+- If you cannot determine whether a claim is accurate
+  from the submitted content and supplied evidence,
+  explicitly say: "Requires human verification."
+
+- Do not use general knowledge to turn an uncertain
+  claim into a supposedly verified correction.
+
+- Do not introduce new scientific explanations,
+  ingredients, mechanisms or product benefits unless
+  they are supported by evidence supplied with the content.
+
 - Do not label a claim false merely because no source
   was provided.
-- Clearly distinguish an unsupported claim from a
-  demonstrably incorrect claim.
-- If you are uncertain, say so.
-- If a claim needs expert review, recommend it.
+
+- Distinguish clearly between:
+  1. Demonstrably incorrect claims.
+  2. Unsupported claims.
+  3. Claims requiring specialist verification.
+  4. Opinions and creative statements.
+
+- When suggesting a correction to an unsupported claim,
+  prefer removing the claim, qualifying it, or requesting
+  evidence rather than replacing it with another factual
+  assertion.
+
+- Never invent product benefits or imply that a product
+  has been tested when no testing evidence is provided.
+
 - A lack of obvious issues does not mean the content
   has been fact-checked.
-
-
-PRESENT YOUR REPORT UNDER THESE HEADINGS:
-
-EDITORIAL REVIEW SUMMARY
-
-CLAIM-BY-CLAIM AUDIT
-
-ISSUES THAT NEED ATTENTION
-
-BRAND ALIGNMENT
-
-WRITING AND PRESENTATION
-
-RECOMMENDED CORRECTIONS
-
-FINAL EDITORIAL VERDICT
-
-Use clear, practical language.
-"""
 
     try:
         response = client.models.generate_content(
