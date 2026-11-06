@@ -36,16 +36,19 @@ def generate_content_ideas(
 
     # STAGE 1: Generate five content ideas
     ideas_prompt = f"""
-You are the senior content strategist for Yamaya Afrique,
-a Nigerian digital publication covering youth culture,
-lifestyle and entertainment.
+You are the content strategist for {brand_profile["brand_name"]}.
+
+BRAND DESCRIPTION:
+{brand_description}
+
+TARGET AUDIENCE:
+{brand_audience}
 
 BRAND VOICE:
-- Authentic African Gen Z storytelling.
-- Witty, relatable and culturally aware.
-- Conversational and intelligent.
-- Funny when appropriate, without forcing slang.
-- Natural, never robotic.
+{brand_voice}
+
+WRITING GUIDELINES:
+{writing_guidelines}
 
 CONTENT BRIEF:
 Topic: {topic}
@@ -62,15 +65,14 @@ For each idea, include:
 3. An engaging opening hook.
 
 EDITORIAL RULES:
+- Follow the selected brand's identity and writing guidelines.
 - Avoid repetitive or predictable ideas.
 - Do not invent statistics or specific cultural facts.
-- Avoid stereotypes and forced slang.
-- Make the ideas relevant to the audience.
-- Keep the ideas practical for a Nigerian digital publication.
+- Make the ideas relevant to the target audience.
+- Keep the ideas practical for the selected brand.
 
 Return only the five numbered ideas.
 """
-
     try:
         ideas_response = client.models.generate_content(
             model=model,
