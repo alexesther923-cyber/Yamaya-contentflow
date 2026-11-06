@@ -1,6 +1,5 @@
-
 # YAMAYA CONTENTFLOW
-# Editorial Quality Review
+# Editorial Quality and Claim Review
 
 import os
 from google import genai
@@ -12,11 +11,10 @@ def review_content(
     brand_name="Yamaya Afrique"
 ):
     """
-    Reviews generated content for editorial quality.
-    Flags issues that need human attention.
+    Reviews content for factual reliability,
+    technical accuracy, brand alignment and writing quality.
     """
 
-    # Retrieve the selected brand profile
     brand_profile = get_brand_profile(brand_name)
 
     brand_description = brand_profile["description"]
@@ -29,21 +27,22 @@ def review_content(
         brand_profile["writing_guidelines"]
     )
 
-    # Retrieve API key securely
     api_key = os.getenv("GEMINI_API_KEY")
 
     if not api_key:
         raise ValueError("Gemini API key not found.")
 
-    # Connect to Gemini
     client = genai.Client(api_key=api_key)
 
     model = "gemini-3.5-flash-lite"
 
     review_prompt = f"""
-You are an experienced editorial quality reviewer.
+You are a careful editorial reviewer working with
+{brand_profile["brand_name"]}.
 
-Review the following content for {brand_profile["brand_name"]}.
+Your task is to review the submitted content.
+Be critical, fair, evidence-conscious and transparent
+about uncertainty.
 
 BRAND DESCRIPTION:
 {brand_description}
@@ -57,47 +56,93 @@ WRITING GUIDELINES:
 CONTENT TO REVIEW:
 {content}
 
-REVIEW THE CONTENT FOR:
 
-1. FACTUAL ACCURACY
-Identify claims, statistics, quotes or statements
-that may be unsupported or require verification.
+PART 1: CLAIM-BY-CLAIM AUDIT
 
-2. TECHNICAL ACCURACY
-Identify scientific, educational or technical
-statements that may be misleading or oversimplified.
+Identify the important factual, scientific, technical,
+health-related and product-related claims in the content.
 
-3. BRAND ALIGNMENT
-Check whether the content follows the brand's
-voice, audience and writing guidelines.
+For each claim, provide:
 
-4. WRITING QUALITY
-Identify awkward wording, repetition, clichés,
-poor flow, spelling and grammar issues.
+1. Exact claim or short quotation.
+2. Claim type:
+   - Factual
+   - Scientific or technical
+   - Health-related
+   - Product-related
+   - Opinion
+   - Creative or subjective
 
-5. CONTENT CREDIBILITY
-Identify invented experiences, assumptions,
-unsubstantiated product claims or exaggerated promises.
+3. Evidence status:
+   - Supporting source provided
+   - No supporting source provided
+   - Cannot assess from the submitted content
+   - Appears internally inconsistent
 
-IMPORTANT RULES:
+4. Review confidence:
+   - High
+   - Medium
+   - Low
 
-- Do not invent sources or research findings.
-- Do not claim that a statement is verified unless
-  reliable supporting evidence is provided.
-- Distinguish confirmed problems from claims that
-  simply need further checking.
-- Do not automatically rewrite questionable facts.
-- Explain why each flagged issue matters.
-- If you find no obvious issue in a category,
-  say so without claiming the content is factually verified.
+IMPORTANT:
+Review confidence means how confident you are that
+the claim deserves the editorial flag. It does NOT mean
+the claim is scientifically or factually proven.
 
-PRESENT YOUR REVIEW UNDER THESE HEADINGS:
+5. Why the claim needs attention.
+6. What evidence or source type would help verify it.
+
+
+PART 2: EDITORIAL QUALITY
+
+Review the content for:
+
+- Brand voice and audience alignment.
+- Clarity and readability.
+- Grammar and spelling.
+- Repetition and awkward wording.
+- Unsupported assumptions.
+- Exaggerated promises and misleading language.
+- Generic or unnatural AI-style expressions.
+
+
+PART 3: RECOMMENDED CORRECTIONS
+
+Suggest practical improvements.
+
+Do not silently change the meaning of the original content.
+
+For factual or scientific claims that cannot be verified,
+recommend cautious wording or human verification instead
+of inventing a replacement fact.
+
+
+STRICT REVIEW RULES:
+
+- Do not invent statistics, research findings, sources,
+  citations, quotations or URLs.
+- Do not claim that you searched or checked external
+  research when you did not.
+- Do not present your own scientific assumptions as facts.
+- Do not introduce new health, haircare or product claims
+  that were not supported by the submitted content.
+- Do not label a claim false merely because no source
+  was provided.
+- Clearly distinguish an unsupported claim from a
+  demonstrably incorrect claim.
+- If you are uncertain, say so.
+- If a claim needs expert review, recommend it.
+- A lack of obvious issues does not mean the content
+  has been fact-checked.
+
+
+PRESENT YOUR REPORT UNDER THESE HEADINGS:
 
 EDITORIAL REVIEW SUMMARY
 
-ISSUES THAT NEED ATTENTION
+CLAIM-BY-CLAIM AUDIT
 
-FACTS AND CLAIMS TO VERIFY
+ISSUES THAT NEED ATTENTION
 
 BRAND ALIGNMENT
 
