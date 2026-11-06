@@ -3,8 +3,26 @@ from google import genai
 from brand_profiles import get_brand_profile
 
 
-def generate_content_ideas(topic, audience, format_type, tone):
+def generate_content_ideas(
+    topic,
+    audience,
+    format_type,
+    tone,
+    brand_name="Yamaya Afrique"
+):
+        # Retrieve the selected brand profile
+    brand_profile = get_brand_profile(brand_name)
 
+    brand_description = brand_profile["description"]
+    brand_audience = brand_profile["target_audience"]
+
+    brand_voice = "\n".join(
+        brand_profile["brand_voice"]
+    )
+
+    writing_guidelines = "\n".join(
+        brand_profile["writing_guidelines"]
+    )
     # Retrieve API key securely
     api_key = os.getenv("GEMINI_API_KEY")
 
