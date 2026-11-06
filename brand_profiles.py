@@ -67,3 +67,13 @@ BRAND_PROFILES = {
     }
 
 }
+def get_brand_profile(brand_name):
+
+    profile = BRAND_PROFILES.get(brand_name)
+
+    if profile is None:
+        raise ValueError(
+            f"Brand '{brand_name}' was not found."
+        )
+
+    return profile
