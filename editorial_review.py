@@ -236,12 +236,12 @@ IMPORTANT:
         if not response.text:
             return "The editorial review returned no result."
 
-        try:
-    parsed_response = json.loads(response.text)
-except json.JSONDecodeError:
-    return "The editorial review returned an invalid JSON response."
+                try:
+            parsed_response = json.loads(response.text)
+        except json.JSONDecodeError:
+            return "The editorial review returned an invalid JSON response."
 
-return parsed_response
+        return parsed_response
 
     except Exception as error:
         return (
