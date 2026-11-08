@@ -199,7 +199,7 @@ Use exactly this structure:
 
 {{
   "claims": [
-    {
+    {{
       "claim": "Exact claim from the submitted content",
       "claim_type": "Factual, Scientific, Health-related, Product-related, Opinion, or Creative",
       "evidence_status": "Supporting source provided, No supporting source provided, Cannot assess, or Internally inconsistent",
@@ -207,7 +207,7 @@ Use exactly this structure:
       "human_verification_required": true,
       "reason": "Why the claim needs attention",
       "evidence_needed": "What evidence would help verify it"
-    }
+    }}
   ],
   "editorial_quality": [
     "List each writing or brand alignment issue"
