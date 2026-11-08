@@ -241,6 +241,25 @@ IMPORTANT:
         except json.JSONDecodeError:
             return "The editorial review returned an invalid JSON response."
 
+                if not isinstance(parsed_response, dict):
+            return "Invalid review format: expected a JSON object."
+
+        required_fields = {
+            "claims",
+            "editorial_quality",
+            "recommended_corrections",
+            "final_status",
+            "status_reason"
+        }
+
+        missing_fields = required_fields - parsed_response.keys()
+
+        if missing_fields:
+            return (
+                "Incomplete editorial review. Missing fields: "
+                + ", ".join(sorted(missing_fields))
+            )
+
         return parsed_response
     except Exception as error:
         return (
