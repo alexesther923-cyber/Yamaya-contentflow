@@ -191,8 +191,42 @@ STATUS SELECTION RULES:
 - Never approve content merely because it is well written.
 - Never describe AI review as proof of factual accuracy.
 - Briefly explain why the selected status was chosen.
-"""
+FINAL OUTPUT FORMAT:
 
+Return your entire review as valid JSON.
+
+Use exactly this structure:
+
+{
+  "claims": [
+    {
+      "claim": "Exact claim from the submitted content",
+      "claim_type": "Factual, Scientific, Health-related, Product-related, Opinion, or Creative",
+      "evidence_status": "Supporting source provided, No supporting source provided, Cannot assess, or Internally inconsistent",
+      "review_confidence": "High, Medium, or Low",
+      "human_verification_required": true,
+      "reason": "Why the claim needs attention",
+      "evidence_needed": "What evidence would help verify it"
+    }
+  ],
+  "editorial_quality": [
+    "List each writing or brand alignment issue"
+  ],
+  "recommended_corrections": [
+    "List practical suggested improvements"
+  ],
+  "final_status": "APPROVED FOR EDITORIAL QUALITY, REVISION REQUIRED, HUMAN VERIFICATION REQUIRED, or DO NOT PUBLISH",
+  "status_reason": "Brief explanation of the selected status"
+}
+
+IMPORTANT:
+- Return valid JSON only.
+- Do not use Markdown code fences.
+- Use true or false for boolean values, not text.
+- Do not omit any of the required fields.
+- Do not invent claims that are absent from the submitted content.
+- If there are no relevant claims or issues, return an empty array.
+"""
     try:
         response = client.models.generate_content(
             model=model,
