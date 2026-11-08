@@ -2,6 +2,7 @@
 # Editorial Quality and Claim Review
 
 import os
+import json
 from google import genai
 from brand_profiles import get_brand_profile
 
