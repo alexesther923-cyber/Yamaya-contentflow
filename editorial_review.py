@@ -197,7 +197,7 @@ Return your entire review as valid JSON.
 
 Use exactly this structure:
 
-{
+{{
   "claims": [
     {
       "claim": "Exact claim from the submitted content",
@@ -217,7 +217,7 @@ Use exactly this structure:
   ],
   "final_status": "APPROVED FOR EDITORIAL QUALITY, REVISION REQUIRED, HUMAN VERIFICATION REQUIRED, or DO NOT PUBLISH",
   "status_reason": "Brief explanation of the selected status"
-}
+}}
 
 IMPORTANT:
 - Return valid JSON only.
