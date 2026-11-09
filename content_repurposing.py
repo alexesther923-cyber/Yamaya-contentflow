@@ -19,7 +19,7 @@ def validate_source_input(source_text, brand_name, output_format):
     if not source_text.strip():
         raise ValueError("Please provide source material.")
 
-    if not isinstance(brand_name, str) or not brand_name.strip():
+if not isinstance(brand_name, str) or not brand_name.strip():
     raise ValueError("Please select a valid brand.")
 
 get_brand_profile(brand_name)
