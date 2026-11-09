@@ -275,7 +275,33 @@ IMPORTANT:
         for claim in parsed_response["claims"]:
             if not isinstance(claim, dict):
                 return "Invalid editorial review: each claim must be a dictionary."
+            required_claim_fields = {
+                "claim",
+                "claim_type",
+                "evidence_status",
+                "review_confidence",
+                "human_verification_required",
+                "reason",
+                "evidence_needed"
+            }
 
+            missing_claim_fields = (
+                required_claim_fields - claim.keys()
+            )
+
+            if missing_claim_fields:
+                return (
+                    "Invalid editorial review. Claim is missing fields: "
+                    + ", ".join(sorted(missing_claim_fields))
+                )
+
+            if not isinstance(
+                claim["human_verification_required"], bool
+            ):
+                return (
+                    "Invalid editorial review: "
+                    "human_verification_required must be True or False."
+                )
             if (
                 claim.get("evidence_status") == "No supporting source provided"
                 and claim.get("human_verification_required") is False
