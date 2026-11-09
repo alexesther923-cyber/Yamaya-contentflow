@@ -254,11 +254,30 @@ IMPORTANT:
 
         missing_fields = required_fields - parsed_response.keys()
 
-        if missing_fields:
+                if missing_fields:
             return (
                 "Incomplete editorial review. Missing fields: "
                 + ", ".join(sorted(missing_fields))
             )
+
+        list_fields = [
+            "claims",
+            "editorial_quality",
+            "recommended_corrections"
+        ]
+
+        for field in list_fields:
+            if not isinstance(parsed_response[field], list):
+                return (
+                    f"Invalid editorial review: "
+                    f"'{field}' must be a list."
+                )
+
+        if not isinstance(parsed_response["final_status"], str):
+            return "Invalid editorial review: final_status must be text."
+
+        if not isinstance(parsed_response["status_reason"], str):
+            return "Invalid editorial review: status_reason must be text."
 
         return parsed_response
     except Exception as error:
