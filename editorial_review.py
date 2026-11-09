@@ -254,7 +254,7 @@ IMPORTANT:
 
         missing_fields = required_fields - parsed_response.keys()
 
-                if missing_fields:
+        if missing_fields:
             return (
                 "Incomplete editorial review. Missing fields: "
                 + ", ".join(sorted(missing_fields))
