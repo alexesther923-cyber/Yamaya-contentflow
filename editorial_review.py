@@ -272,7 +272,18 @@ IMPORTANT:
                     f"Invalid editorial review: "
                     f"'{field}' must be a list."
                 )
+        for claim in parsed_response["claims"]:
+            if not isinstance(claim, dict):
+                return "Invalid editorial review: each claim must be a dictionary."
 
+            if (
+                claim.get("evidence_status") == "No supporting source provided"
+                and claim.get("human_verification_required") is False
+            ):
+                return (
+                    "Validation error: an unsupported claim "
+                    "cannot be marked as not requiring human verification."
+                )
         if not isinstance(parsed_response["final_status"], str):
             return "Invalid editorial review: final_status must be text."
 
