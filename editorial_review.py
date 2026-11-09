@@ -279,6 +279,19 @@ IMPORTANT:
         if not isinstance(parsed_response["status_reason"], str):
             return "Invalid editorial review: status_reason must be text."
 
+        allowed_statuses = [
+            "APPROVED FOR EDITORIAL QUALITY",
+            "REVISION REQUIRED",
+            "HUMAN VERIFICATION REQUIRED",
+            "DO NOT PUBLISH"
+        ]
+
+        if parsed_response["final_status"] not in allowed_statuses:
+            return (
+                "Invalid editorial status: "
+                + str(parsed_response["final_status"])
+            )
+
         return parsed_response
     except Exception as error:
         return (
