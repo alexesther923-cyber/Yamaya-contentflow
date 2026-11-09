@@ -241,7 +241,7 @@ IMPORTANT:
         except json.JSONDecodeError:
             return "The editorial review returned an invalid JSON response."
 
-                if not isinstance(parsed_response, dict):
+        if not isinstance(parsed_response, dict):
             return "Invalid review format: expected a JSON object."
 
         required_fields = {
