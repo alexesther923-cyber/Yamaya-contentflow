@@ -2,7 +2,8 @@
 # Content Repurposing Studio
 
 from brand_profiles import get_brand_profile
-
+import os
+from google import genai
 """
 Transforms existing source material into
 brand-aligned content for different platforms.
