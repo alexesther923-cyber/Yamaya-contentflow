@@ -12,7 +12,11 @@ def validate_source_input(source_text, brand_name, output_format):
     Checks whether the user's source material
     and selected options are valid.
     """
-
+def repurpose_content(source_text, brand_name, output_format):
+    """
+    Transforms existing source material into
+    brand-aligned content.
+    """
     if not isinstance(source_text, str):
         raise TypeError("Source material must be text.")
 
