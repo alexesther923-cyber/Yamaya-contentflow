@@ -123,20 +123,45 @@ FORMAT INSTRUCTIONS:
 
 IMPORTANT EDITORIAL RULES:
 
-1. Treat the source material as your primary evidence.
-2. Preserve its original meaning.
-3. Do not invent statistics, dates, quotations,
-   research findings, sources, or factual claims.
-4. Only use direct quotations that appear in the source.
-5. Do not introduce unsupported scientific,
+1. Treat the source material as the only factual
+   authority for the content.
+
+2. Preserve the original meaning and context.
+
+3. Do not invent statistics, dates, locations,
+   quotations, research findings, sources,
+   experiences, or factual claims.
+
+4. Do not turn general statements into specific
+   events or experiences.
+
+5. Do not add details such as specific class times,
+   locations, costs, or routines unless they
+   appear in the source.
+
+6. Only use direct quotations that appear
+   in the source material.
+
+7. Do not introduce unsupported scientific,
    medical, or product performance claims.
-6. Do not present assumptions as established facts.
-7. You may create engaging hooks and headlines,
-   but they must not misrepresent the source.
-8. Follow the selected brand's writing guidelines.
-9. Use natural, human-sounding language.
-10. If the source lacks important information,
-    do not fill the gaps with guesses.
+
+8. Creative hooks, headlines and transitions
+   are allowed, but they must not introduce
+   new factual information.
+
+9. If information is missing, leave it out
+   instead of guessing.
+
+10. Follow the selected brand's writing guidelines.
+
+11. Use natural, human-sounding language.
+
+12. Before returning the result, check every
+    factual statement against the source material.
+    Remove any statement that cannot be supported.
+
+13. Human editorial review is still required
+    before publication.
 
 Return the completed content in the requested format.
 """
