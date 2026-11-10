@@ -1,3 +1,7 @@
+
 google-genai
 pypdf
 python-docx
+pytesseract
+Pillow
+PyMuPDF
