@@ -1,6 +1,8 @@
 # YAMAYA CONTENTFLOW
 # Content Repurposing Studio
+
 from brand_profiles import get_brand_profile
+
 """
 Transforms existing source material into
 brand-aligned content for different platforms.
@@ -12,11 +14,7 @@ def validate_source_input(source_text, brand_name, output_format):
     Checks whether the user's source material
     and selected options are valid.
     """
-def repurpose_content(source_text, brand_name, output_format):
-    """
-    Transforms existing source material into
-    brand-aligned content.
-    """
+
     if not isinstance(source_text, str):
         raise TypeError("Source material must be text.")
 
@@ -41,3 +39,15 @@ def repurpose_content(source_text, brand_name, output_format):
 
     return True
 
+
+def repurpose_content(source_text, brand_name, output_format):
+    """
+    Transforms existing source material into
+    brand-aligned content.
+    """
+
+    validate_source_input(
+        source_text,
+        brand_name,
+        output_format
+    )
