@@ -15,7 +15,7 @@ def offer_save(content, brand_name):
         print("\nFiles saved successfully!")
 
         for path in saved_files:
-            print(path)
+            print("Downloading:", path)
             files.download(path)
 
 
