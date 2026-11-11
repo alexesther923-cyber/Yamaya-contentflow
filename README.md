@@ -1,40 +1,129 @@
-# Yamaya-contentflow
-A beginner AI-powered content planning and workflow assistant for digital publishers
-# About the project
-Yamaya ContentFlow is a beginner-built AI automation project designed to simplify content planning for digital publishers, independent creators, and small media teams.
-The project is inspired by real content planning and operational challenges experienced while working with Yamaya Afrique, a Nigerian digital publication focused on youth culture, lifestyle, and entertainment.
-# The Problem
-Content team spend considerably time brainstorming topic, organising research, developing content angles, preparing briefs, and maintaining consistent publishing workflows.
-These repetitive tasks can make content production more time-consuming, particularly for small teams with limited resources.
-# Proposed Solution
-Yamaya ContentFlow aims to provide a structured workflow that helps users transform a simple content idea into an organised content brief.
-# Planned Features 
-Content topic input,
-Target audience identification
-, Content angle suggestions
-, Hook generation
-, Content brief creation
-, Publishing checklist
-, AI-assisted content planning
-# Proposed Technology Stack
-Python
-Claude API (planned integration)
-GitHub
-Workflow automation tools (planned)
-# Project Status
+Yamaya ContentFlow
+
+AI-Powered Content Planning, Editorial Review & Repurposing Studio
+
+About the Project
+
+Yamaya ContentFlow is an AI-powered content workflow assistant designed to help digital publishers, independent creators, and small media teams plan, review, and repurpose content more efficiently.
+
+Inspired by real content production and operational challenges experienced at Yamaya Afrique, a Nigerian digital publication focused on youth culture, lifestyle, and entertainment, the project aims to simplify repetitive content workflows through Python and generative AI.
+
+The Problem
+
+Content teams spend considerable time brainstorming ideas, developing content, reviewing drafts, extracting information from documents, and adapting existing material for different platforms.
+
+For small teams with limited resources, these repetitive tasks can make content production more demanding and time-consuming.
+
+Proposed Solution
+
+Yamaya ContentFlow provides a modular application with three main workflows:
+
+1. Content Ideation: Generates content ideas and develops selected concepts into social media content.
+2. Editorial Review: Evaluates existing content for editorial quality, potentially unsupported claims, and areas requiring human verification.
+3. Content Repurposing Studio: Transforms existing source material into different content formats while considering brand voice and source fidelity.
+
+Current Features
+
+1. Content Ideation
+
+- Topic and target audience input.
+- Content idea generation.
+- Carousel and Reel development.
+- Brand-specific tone and writing guidelines.
+
+2. Editorial Review
+
+- AI-assisted content assessment.
+- Identification of potentially unsupported claims.
+- Suggested editorial corrections.
+- Human verification recommendations.
+
+3. Content Repurposing
+
+- Pasted text input.
+- PDF and DOCX document processing.
+- Image text extraction through OCR.
+- AI-powered image analysis.
+- Single-format and multi-format content generation.
+- Source-fidelity instructions to reduce unsupported additions.
+
+Supported Brands
+
+- Yamaya Afrique
+- ErikaL Naturals
+
+Supported Output Formats
+
+- Social media carousels
+- Instagram Reels scripts
+- Blog articles
+- Newsletters
+- Social media captions
+
+Technology Stack
+
+- Python: Application development and workflow logic.
+- Google Gemini API: AI-powered content generation, editorial review, and image analysis.
+- Google Colab: Development and testing environment.
+- GitHub: Version control and project documentation.
+- PyMuPDF and pypdf: PDF processing.
+- python-docx: Word document processing.
+- Pytesseract and Pillow: Image text extraction and image processing.
+
+Project Architecture
+
+The project uses a modular structure, with separate Python files responsible for different functions.
+
+The main application ("app.py") connects the workflows, while supporting modules handle brand profiles, AI generation, editorial review, document processing, image analysis, and content repurposing.
+
+Project Status
+
 Currently in development.
-This is an introductory learning project. Features will be implemented, tested, and documented as development progresses.
-# Learning Objectives 
-Through this project, I aim to develop practical skills in:
-Programming with Python
-, AI-assisted application development
-, API integration
-, Workflow automation
-, Testing and debugging
-Software documentation
-# Project Motivation 
-I am interested in building practical AI-powered solutions that help businesses and creative teams work more efficiently.
-This project is my first step towards developing the technical skills required to become an AI automation developer.
-# Developer: Alex Esther
-# Location: Lagos Nigeria
-# Project: Koya Aai Automation Development Portfolio 
+
+Implemented and tested:
+
+- Brand-specific content generation.
+- Editorial review workflow.
+- Source text processing.
+- DOCX text extraction.
+- PDF text extraction in standalone tests.
+- Image OCR.
+- Gemini Vision image analysis.
+- Single-format and multi-format repurposing.
+- End-to-end content repurposing pipeline.
+- Integration of three workflows into the main application.
+
+Document upload has been implemented in the main application but still requires verification in the Colab browser environment.
+
+A unified graphical dashboard and further workflow improvements remain future development goals.
+
+Important Limitations
+
+- AI-generated content requires human editorial review before publication.
+- AI-assisted editorial review does not independently establish factual or scientific accuracy.
+- Generated content may occasionally introduce details not present in the original source.
+- OCR can produce extraction errors depending on document quality.
+- API availability and usage are subject to Gemini's applicable limits.
+
+Learning Objectives
+
+This project is helping me develop practical skills in:
+
+- Python programming.
+- Modular software development.
+- Generative AI integration.
+- Prompt engineering.
+- Workflow automation.
+- Document and image processing.
+- Input validation and error handling.
+- Application testing and debugging.
+- Technical documentation.
+
+Project Motivation
+
+Yamaya ContentFlow is a practical learning and portfolio project developed to explore how AI automation can solve real content production challenges.
+
+My goal is to develop the technical skills needed to build useful AI-powered automation systems for businesses, publishers, and creative teams.
+
+Developer: Alex Esther
+Project: Koya AI Automation Developer Portfolio
