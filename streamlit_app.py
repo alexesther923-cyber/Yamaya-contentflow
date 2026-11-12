@@ -15,6 +15,55 @@ st.set_page_config(
     layout="centered"
 )
 
+from auth import send_login_code, verify_login_code, logout
+
+# Authentication gate
+if not st.session_state.get("authenticated", False):
+
+    st.title("YAMAYA CONTENTFLOW")
+    st.subheader("Sign in")
+
+    email = st.text_input("Email address")
+
+    if st.button("Send verification code"):
+        if email.strip():
+            try:
+                send_login_code(email)
+                st.session_state["login_email"] = email.strip().lower()
+                st.success("Verification code sent. Check your email.")
+            except Exception as e:
+                st.error(f"Could not send code: {e}")
+        else:
+            st.warning("Enter your email address.")
+
+    if st.session_state.get("login_email"):
+        code = st.text_input(
+            "Enter your 6-digit verification code",
+            max_chars=6
+        )
+
+        if st.button("Verify and sign in"):
+            try:
+                verify_login_code(
+                    st.session_state["login_email"],
+                    code
+                )
+                st.success("Signed in successfully!")
+                st.rerun()
+            except Exception:
+                st.error("Invalid or expired code. Please try again.")
+
+    st.stop()
+
+# Logged-in user controls
+st.sidebar.write(
+    f"Signed in as: {st.session_state.get('user_email', '')}"
+)
+
+if st.sidebar.button("Log out"):
+    logout()
+    st.rerun()
+
 st.title("YAMAYA CONTENTFLOW")
 st.caption("AI-powered content planning, editorial review and repurposing.")
 
