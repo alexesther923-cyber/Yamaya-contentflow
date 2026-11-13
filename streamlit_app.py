@@ -10,12 +10,6 @@ from output_formatter import save_generated_content
 from streamlit_url_fragments import get_fragments
 from urllib.parse import parse_qs
 
-st.set_page_config(
-    page_title="Yamaya ContentFlow",
-    page_icon="✍️",
-    layout="centered"
-)
-
 from auth import (
     login,
     logout,
@@ -23,8 +17,14 @@ from auth import (
     complete_password_recovery,
     get_platform_role
 )
-# Password recovery screen
-# Password recovery
+
+st.set_page_config(
+    page_title="Yamaya ContentFlow",
+    page_icon="✍️",
+    layout="centered"
+)
+
+# PASSWORD RECOVERY
 fragments = get_fragments()
 
 recovery_data = {}
@@ -66,8 +66,10 @@ if (
     if st.button("Update password"):
         if len(new_password) < 8:
             st.warning("Password must be at least 8 characters.")
+
         elif new_password != confirm_password:
             st.error("Passwords do not match.")
+
         else:
             try:
                 complete_password_recovery(
@@ -86,43 +88,69 @@ if (
                 )
 
     st.stop()
-# Authentication gate
+
+
+# AUTHENTICATION GATE
 if not st.session_state.get("authenticated", False):
+
     st.title("YAMAYA CONTENTFLOW")
     st.subheader("Sign in to your account")
 
     email = st.text_input("Email address")
-    password = st.text_input("Password", type="password")
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
 
     if st.button("Forgot password?"):
+
         if email.strip():
             try:
                 send_password_recovery(email)
-                st.success("If your account exists, a recovery email will be sent.")
+
+                st.success(
+                    "If your account exists, a recovery email will be sent."
+                )
+
             except Exception:
-                st.error("Could not request password recovery. Try again later.")
+                st.error(
+                    "Could not request password recovery. Try again later."
+                )
+
         else:
             st.warning("Enter your email address first.")
 
     if st.button("Sign in"):
+
         if email.strip() and password:
             try:
                 login(email, password)
+
                 st.success("Login successful!")
                 st.rerun()
+
             except Exception:
                 st.error("Login failed. Check your email and password.")
+
         else:
             st.warning("Enter your email and password.")
 
     st.stop()
-# Load platform role
+
+
+# LOAD PLATFORM ROLE
 platform_role = get_platform_role()
 st.session_state["platform_role"] = platform_role
-st.sidebar.write("Your platform role:", platform_role)
-# Logged-in user controls
+
+
+# LOGGED-IN USER CONTROLS
 st.sidebar.write(
     f"Signed in as: {st.session_state.get('user_email', '')}"
+)
+
+st.sidebar.write(
+    "Your platform role:",
+    platform_role
 )
 
 if st.sidebar.button("Log out"):
@@ -130,14 +158,15 @@ if st.sidebar.button("Log out"):
     st.rerun()
 
 
+# MAIN DASHBOARD
 st.title("YAMAYA CONTENTFLOW")
-st.caption("AI-powered content planning, editorial review and repurposing.")
 
-brand_name = st.sidebar.selectbox(
-    "Select Brand",
-    ["Yamaya Afrique", "ErikaL Naturals"]
+st.caption(
+    "AI-powered content planning, editorial review and repurposing."
 )
 
+
+# WORKFLOW MENU
 workflow_options = [
     "Content Ideation",
     "Editorial Review",
@@ -153,45 +182,80 @@ workflow = st.sidebar.selectbox(
 )
 
 st.divider()
+
+
+# PLATFORM ADMINISTRATION
 if workflow == "Platform Administration":
 
     st.subheader("Platform Owner Dashboard")
 
-    st.write("Welcome to Yamaya ContentFlow administration.")
+    st.write(
+        "Welcome to Yamaya ContentFlow administration."
+    )
 
     st.markdown("### Platform Management")
 
-    st.info("User and role management will be added here.")
+    st.info(
+        "User and role management will be added here."
+    )
 
-    st.info("Brand management will be added here.")
+    st.info(
+        "Brand management will be added here."
+    )
 
-    st.info("Invitations and account management will be added here.")
+    st.info(
+        "Invitations and account management will be added here."
+    )
 
+
+# CONTENT IDEATION
 elif workflow == "Content Ideation":
-if workflow == "Content Ideation":
 
     st.subheader("Generate Content")
 
     topic = st.text_input("Content topic")
     audience = st.text_input("Target audience")
-    format_type = st.selectbox("Content format", ["Reel", "Carousel"])
-    tone = st.text_input("Preferred tone", "Engaging and relatable")
+
+    format_type = st.selectbox(
+        "Content format",
+        ["Reel", "Carousel"]
+    )
+
+    tone = st.text_input(
+        "Preferred tone",
+        "Engaging and relatable"
+    )
 
     if st.button("Generate Content", type="primary"):
+
         if not topic or not audience:
-            st.warning("Please enter a topic and target audience.")
+            st.warning(
+                "Please enter a topic and target audience."
+            )
+
         else:
             with st.spinner("Generating content..."):
+
                 try:
                     result = generate_content_ideas(
-                        topic, audience, format_type, tone, brand_name
+                        topic,
+                        audience,
+                        format_type,
+                        tone,
+                        brand_name
                     )
+
                     st.session_state["result"] = {
                         "Content Ideas": result
                     }
-                except Exception as error:
-                    st.error(f"Generation failed: {error}")
 
+                except Exception as error:
+                    st.error(
+                        f"Generation failed: {error}"
+                    )
+
+
+# EDITORIAL REVIEW
 elif workflow == "Editorial Review":
 
     st.subheader("Review Existing Content")
@@ -202,25 +266,40 @@ elif workflow == "Editorial Review":
     )
 
     if st.button("Review Content", type="primary"):
+
         if not content.strip():
             st.warning("Please paste content first.")
+
         else:
             with st.spinner("Reviewing content..."):
+
                 try:
-                    result = review_content(content, brand_name)
+                    result = review_content(
+                        content,
+                        brand_name
+                    )
+
                     st.session_state["result"] = {
                         "Editorial Review": result
                     }
-                except Exception as error:
-                    st.error(f"Review failed: {error}")
 
+                except Exception as error:
+                    st.error(
+                        f"Review failed: {error}"
+                    )
+
+
+# CONTENT REPURPOSING STUDIO
 elif workflow == "Content Repurposing Studio":
 
     st.subheader("Repurpose Existing Content")
 
     source_option = st.radio(
         "Choose your source",
-        ["Paste text", "Upload a document or image"]
+        [
+            "Paste text",
+            "Upload a document or image"
+        ]
     )
 
     source_text = None
@@ -228,14 +307,24 @@ elif workflow == "Content Repurposing Studio":
     uploaded_file = None
 
     if source_option == "Paste text":
+
         source_text = st.text_area(
             "Paste your source material",
             height=250
         )
+
     else:
+
         uploaded_file = st.file_uploader(
             "Upload PDF, DOCX or image",
-            type=["pdf", "docx", "jpg", "jpeg", "png", "webp"]
+            type=[
+                "pdf",
+                "docx",
+                "jpg",
+                "jpeg",
+                "png",
+                "webp"
+            ]
         )
 
     output_formats = st.multiselect(
@@ -251,27 +340,49 @@ elif workflow == "Content Repurposing Studio":
 
     if st.button("Repurpose Content", type="primary"):
 
-        if source_option == "Paste text" and not source_text.strip():
-            st.warning("Please paste your source material.")
+        if (
+            source_option == "Paste text"
+            and not source_text.strip()
+        ):
+            st.warning(
+                "Please paste your source material."
+            )
 
-        elif source_option == "Upload a document or image" and not uploaded_file:
+        elif (
+            source_option == "Upload a document or image"
+            and not uploaded_file
+        ):
             st.warning("Please upload a file.")
 
         elif not output_formats:
-            st.warning("Please select at least one output format.")
+            st.warning(
+                "Please select at least one output format."
+            )
 
         else:
             try:
+
                 if uploaded_file:
-                    suffix = os.path.splitext(uploaded_file.name)[1]
+
+                    suffix = os.path.splitext(
+                        uploaded_file.name
+                    )[1]
 
                     with tempfile.NamedTemporaryFile(
-                        delete=False, suffix=suffix
+                        delete=False,
+                        suffix=suffix
                     ) as temp_file:
-                        temp_file.write(uploaded_file.getvalue())
+
+                        temp_file.write(
+                            uploaded_file.getvalue()
+                        )
+
                         file_path = temp_file.name
 
-                with st.spinner("Processing and repurposing content..."):
+                with st.spinner(
+                    "Processing and repurposing content..."
+                ):
+
                     result = run_contentflow_pipeline(
                         brand_name=brand_name,
                         output_formats=output_formats,
@@ -279,40 +390,61 @@ elif workflow == "Content Repurposing Studio":
                         file_path=file_path
                     )
 
-                st.session_state["result"] = result["generated_content"]
+                st.session_state["result"] = (
+                    result["generated_content"]
+                )
 
             except Exception as error:
-                st.error(f"Repurposing failed: {error}")
+
+                st.error(
+                    f"Repurposing failed: {error}"
+                )
 
             finally:
+
                 if file_path and os.path.exists(file_path):
                     os.remove(file_path)
 
 
+# DISPLAY GENERATED CONTENT
 if "result" in st.session_state:
 
     st.divider()
     st.subheader("Your Content")
 
     for format_name, content in st.session_state["result"].items():
-        with st.expander(format_name, expanded=True):
+
+        with st.expander(
+            format_name,
+            expanded=True
+        ):
             st.write(content)
 
     if st.button("Prepare Word Document"):
+
         try:
+
             saved_files = save_generated_content(
                 st.session_state["result"],
                 brand_name
             )
 
             for path in saved_files:
+
                 with open(path, "rb") as document:
+
                     st.download_button(
                         label="Download Word Document",
                         data=document.read(),
                         file_name=os.path.basename(path),
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        mime=(
+                            "application/vnd.openxmlformats-officedocument."
+                            "wordprocessingml.document"
+                        )
                     )
 
         except Exception as error:
-            st.error(f"Document export failed: {error}")
+
+            st.error(
+                f"Document export failed: {error}"
+            )
