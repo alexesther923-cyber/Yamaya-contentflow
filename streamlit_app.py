@@ -15,7 +15,12 @@ st.set_page_config(
     layout="centered"
 )
 
-from auth import login, logout
+from auth import (
+    login,
+    logout,
+    send_password_recovery,
+    complete_password_recovery
+)
 
 # Authentication gate
 if not st.session_state.get("authenticated", False):
