@@ -6,4 +6,4 @@ pytesseract
 Pillow
 PyMuPDF
 streamlit
-supabase
+supabase==2.32.0
