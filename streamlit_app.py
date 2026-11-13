@@ -190,16 +190,15 @@ workflow = st.sidebar.selectbox(
 st.divider()
 
 
-# PLATFORM ADMINISTRATION
 
+# PLATFORM ADMINISTRATION
 if workflow == "Platform Administration":
 
     st.subheader("Platform Owner Dashboard")
 
-    st.write(
-        "Welcome to Yamaya ContentFlow administration."
-    )
+    st.write("Welcome to Yamaya ContentFlow administration.")
 
+    # REGISTERED USERS
     st.markdown("### Registered Users")
 
     try:
@@ -222,9 +221,77 @@ if workflow == "Platform Administration":
                 hide_index=True
             )
 
-            st.caption(
-                f"Total registered users: {len(users)}"
-            )
+            st.caption(f"Total registered users: {len(users)}")
+
+            # ROLE ASSIGNMENT
+            st.divider()
+            st.markdown("### Assign Platform Roles")
+
+            available_users = [
+                user for user in users
+                if user.get("email")
+            ]
+
+            if available_users:
+
+                selected_email = st.selectbox(
+                    "Select a user",
+                    [user["email"] for user in available_users]
+                )
+
+                selected_user = next(
+                    user for user in available_users
+                    if user["email"] == selected_email
+                )
+
+                current_role = selected_user.get("platform_role")
+
+                if current_role == "platform_owner":
+
+                    st.success(
+                        "This account is the Platform Owner. "
+                        "Its role cannot be changed here."
+                    )
+
+                else:
+
+                    st.write(
+                        f"Current role: {current_role or 'Unassigned'}"
+                    )
+
+                    role_options = [
+                        "administrator",
+                        "editor",
+                        "contributor",
+                        "viewer"
+                    ]
+
+                    selected_role = st.selectbox(
+                        "Choose new role",
+                        role_options
+                    )
+
+                    if st.button("Save Role", type="primary"):
+
+                        try:
+                            assign_platform_role(
+                                selected_user["user_id"],
+                                selected_role
+                            )
+
+                            st.success(
+                                f"Role updated to {selected_role}."
+                            )
+
+                            st.rerun()
+
+                        except Exception as error:
+                            st.error(
+                                f"Could not update role: {error}"
+                            )
+
+            else:
+                st.info("No users with available email addresses.")
 
         else:
             st.info("No registered users found.")
@@ -232,6 +299,7 @@ if workflow == "Platform Administration":
     except Exception as error:
         st.error(f"Could not load users: {error}")
 
+    # OTHER MANAGEMENT SECTIONS
     st.divider()
 
     st.markdown("### Brand Management")
@@ -239,8 +307,6 @@ if workflow == "Platform Administration":
 
     st.markdown("### Invitations and Account Management")
     st.info("Invitations and account management will be added here.")
-
-
 
 # CONTENT IDEATION
 elif workflow == "Content Ideation":
