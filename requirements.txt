@@ -7,3 +7,4 @@ Pillow
 PyMuPDF
 streamlit
 supabase==2.32.0
+streamlit-url-fragments==0.1.2
