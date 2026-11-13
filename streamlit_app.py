@@ -165,6 +165,11 @@ st.caption(
     "AI-powered content planning, editorial review and repurposing."
 )
 
+# BRAND SELECTION
+brand_name = st.sidebar.selectbox(
+    "Select Brand",
+    ["Yamaya Afrique", "ErikaL Naturals"]
+)
 
 # WORKFLOW MENU
 workflow_options = [
