@@ -21,7 +21,43 @@ from auth import (
     send_password_recovery,
     complete_password_recovery
 )
+# Password recovery screen
+recovery_code = st.query_params.get("code")
 
+if recovery_code:
+    st.title("YAMAYA CONTENTFLOW")
+    st.subheader("Reset your password")
+
+    new_password = st.text_input(
+        "New password",
+        type="password"
+    )
+
+    confirm_password = st.text_input(
+        "Confirm new password",
+        type="password"
+    )
+
+    if st.button("Update password"):
+        if len(new_password) < 8:
+            st.warning("Password must be at least 8 characters.")
+        elif new_password != confirm_password:
+            st.error("Passwords do not match.")
+        else:
+            try:
+                complete_password_recovery(
+                    recovery_code,
+                    new_password
+                )
+                st.query_params.clear()
+                st.success("Password updated successfully!")
+                st.rerun()
+            except Exception:
+                st.error(
+                    "Password reset failed. The recovery link may have expired. Request a new one."
+                )
+
+    st.stop()
 # Authentication gate
 if not st.session_state.get("authenticated", False):
 
