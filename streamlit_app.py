@@ -60,21 +60,22 @@ if recovery_code:
     st.stop()
 # Authentication gate
 if not st.session_state.get("authenticated", False):
-
     st.title("YAMAYA CONTENTFLOW")
     st.subheader("Sign in to your account")
 
     email = st.text_input("Email address")
     password = st.text_input("Password", type="password")
-if st.button("Forgot password?"):
-    if email.strip():
-        try:
-            send_password_recovery(email)
-            st.success("If your account exists, a recovery email will be sent.")
-        except Exception:
-            st.error("Could not request password recovery. Try again later.")
-    else:
-        st.warning("Enter your email address first.")
+
+    if st.button("Forgot password?"):
+        if email.strip():
+            try:
+                send_password_recovery(email)
+                st.success("If your account exists, a recovery email will be sent.")
+            except Exception:
+                st.error("Could not request password recovery. Try again later.")
+        else:
+            st.warning("Enter your email address first.")
+
     if st.button("Sign in"):
         if email.strip() and password:
             try:
@@ -87,7 +88,6 @@ if st.button("Forgot password?"):
             st.warning("Enter your email and password.")
 
     st.stop()
-
 # Logged-in user controls
 st.sidebar.write(
     f"Signed in as: {st.session_state.get('user_email', '')}"
