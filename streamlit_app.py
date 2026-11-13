@@ -15,9 +15,9 @@ from auth import (
     logout,
     send_password_recovery,
     complete_password_recovery,
-    get_platform_role
+    get_platform_role,
+    get_platform_users
 )
-
 st.set_page_config(
     page_title="Yamaya ContentFlow",
     page_icon="✍️",
@@ -185,6 +185,7 @@ st.divider()
 
 
 # PLATFORM ADMINISTRATION
+
 if workflow == "Platform Administration":
 
     st.subheader("Platform Owner Dashboard")
@@ -193,19 +194,46 @@ if workflow == "Platform Administration":
         "Welcome to Yamaya ContentFlow administration."
     )
 
-    st.markdown("### Platform Management")
+    st.markdown("### Registered Users")
 
-    st.info(
-        "User and role management will be added here."
-    )
+    try:
+        users = get_platform_users()
 
-    st.info(
-        "Brand management will be added here."
-    )
+        if users:
+            user_directory = []
 
-    st.info(
-        "Invitations and account management will be added here."
-    )
+            for user in users:
+                user_directory.append({
+                    "Name": user.get("display_name") or "Not provided",
+                    "Email": user.get("email") or "Not available",
+                    "Platform Role": user.get("platform_role") or "Unassigned",
+                    "Date Joined": user.get("account_created_at") or "Unknown"
+                })
+
+            st.dataframe(
+                user_directory,
+                use_container_width=True,
+                hide_index=True
+            )
+
+            st.caption(
+                f"Total registered users: {len(users)}"
+            )
+
+        else:
+            st.info("No registered users found.")
+
+    except Exception as error:
+        st.error(f"Could not load users: {error}")
+
+    st.divider()
+
+    st.markdown("### Brand Management")
+    st.info("Brand management will be added here.")
+
+    st.markdown("### Invitations and Account Management")
+    st.info("Invitations and account management will be added here.")
+
 
 
 # CONTENT IDEATION
