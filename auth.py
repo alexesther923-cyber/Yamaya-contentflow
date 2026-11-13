@@ -73,7 +73,14 @@ def get_platform_role():
         return response.data["role"]
 
     return None
+def get_platform_users():
+    supabase = get_supabase()
 
+    response = supabase.rpc(
+        "get_platform_users"
+    ).execute()
+
+    return response.data or []
 
 def send_password_recovery(email):
     supabase = get_supabase()
