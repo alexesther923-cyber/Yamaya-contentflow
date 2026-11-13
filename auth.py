@@ -61,12 +61,13 @@ def send_password_recovery(email):
     )
 
 
-def complete_password_recovery(code, new_password):
+def complete_password_recovery(access_token, refresh_token, new_password):
     supabase = get_supabase()
 
-    response = supabase.auth.exchange_code_for_session({
-        "auth_code": code
-    })
+    response = supabase.auth.set_session(
+        access_token,
+        refresh_token
+    )
 
     supabase.auth.update_user({
         "password": new_password
