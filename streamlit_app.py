@@ -20,7 +20,8 @@ from auth import (
     login,
     logout,
     send_password_recovery,
-    complete_password_recovery
+    complete_password_recovery,
+    get_platform_role
 )
 # Password recovery screen
 # Password recovery
@@ -115,6 +116,9 @@ if not st.session_state.get("authenticated", False):
             st.warning("Enter your email and password.")
 
     st.stop()
+# Load platform role
+platform_role = get_platform_role()
+st.session_state["platform_role"] = platform_role
 # Logged-in user controls
 st.sidebar.write(
     f"Signed in as: {st.session_state.get('user_email', '')}"
