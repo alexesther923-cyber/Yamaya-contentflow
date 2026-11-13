@@ -1,10 +1,23 @@
 
 import streamlit as st
 from supabase import create_client
-from supabase.client import ClientOptions
+from supabase_auth import SyncSupportedStorage
+from supabase.lib.client_options import SyncClientOptions
 
 
 APP_URL = "https://yamaya-contentflow.streamlit.app"
+
+
+class StreamlitSessionStorage(SyncSupportedStorage):
+
+    def get_item(self, key):
+        return st.session_state.get(f"sb:{key}")
+
+    def set_item(self, key, value):
+        st.session_state[f"sb:{key}"] = value
+
+    def remove_item(self, key):
+        st.session_state.pop(f"sb:{key}", None)
 
 
 def get_supabase():
@@ -12,8 +25,14 @@ def get_supabase():
         st.session_state.supabase_client = create_client(
             st.secrets["supabase"]["url"],
             st.secrets["supabase"]["key"],
-            options=ClientOptions(flow_type="pkce")
+            options=SyncClientOptions(
+                flow_type="pkce",
+                storage=StreamlitSessionStorage(),
+                persist_session=False,
+                auto_refresh_token=False
+            )
         )
+
     return st.session_state.supabase_client
 
 
@@ -38,9 +57,7 @@ def send_password_recovery(email):
 
     return supabase.auth.reset_password_for_email(
         email.strip().lower(),
-        {
-            "redirect_to": APP_URL
-        }
+        {"redirect_to": APP_URL}
     )
 
 
