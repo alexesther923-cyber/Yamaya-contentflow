@@ -46,10 +46,33 @@ def login(email, password):
 
     st.session_state["authenticated"] = True
     st.session_state["user_email"] = response.user.email
+    st.session_state["user_id"] = str(response.user.id)
     st.session_state["auth_access_token"] = response.session.access_token
     st.session_state["auth_refresh_token"] = response.session.refresh_token
 
     return response
+
+
+def get_platform_role():
+    supabase = get_supabase()
+
+    user_id = st.session_state.get("user_id")
+
+    if not user_id:
+        return None
+
+    response = (
+        supabase.table("platform_roles")
+        .select("role")
+        .eq("user_id", user_id)
+        .maybe_single()
+        .execute()
+    )
+
+    if response.data:
+        return response.data["role"]
+
+    return None
 
 
 def send_password_recovery(email):
@@ -75,6 +98,7 @@ def complete_password_recovery(access_token, refresh_token, new_password):
 
     st.session_state["authenticated"] = True
     st.session_state["user_email"] = response.user.email
+    st.session_state["user_id"] = str(response.user.id)
     st.session_state["auth_access_token"] = response.session.access_token
     st.session_state["auth_refresh_token"] = response.session.refresh_token
 
@@ -88,9 +112,11 @@ def logout():
     for key in [
         "authenticated",
         "user_email",
+        "user_id",
         "auth_access_token",
         "auth_refresh_token",
         "supabase_client",
-        "login_email"
+        "login_email",
+        "recovery_completed"
     ]:
         st.session_state.pop(key, None)
