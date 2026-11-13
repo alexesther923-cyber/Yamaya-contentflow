@@ -7,7 +7,8 @@ from gemini_generator import generate_content_ideas
 from editorial_review import review_content
 from contentflow_pipeline import run_contentflow_pipeline
 from output_formatter import save_generated_content
-
+from streamlit_url_fragments import get_fragments
+from urllib.parse import parse_qs
 
 st.set_page_config(
     page_title="Yamaya ContentFlow",
@@ -22,9 +23,32 @@ from auth import (
     complete_password_recovery
 )
 # Password recovery screen
-recovery_code = st.query_params.get("code")
+# Password recovery
+fragments = get_fragments()
 
-if recovery_code:
+recovery_data = {}
+
+if isinstance(fragments, dict):
+    recovery_data = fragments
+
+elif isinstance(fragments, str):
+    recovery_data = {
+        key: values[0]
+        for key, values in parse_qs(
+            fragments.lstrip("#?")
+        ).items()
+    }
+
+access_token = recovery_data.get("access_token")
+refresh_token = recovery_data.get("refresh_token")
+recovery_type = recovery_data.get("type")
+
+if (
+    access_token
+    and refresh_token
+    and recovery_type == "recovery"
+    and not st.session_state.get("recovery_completed")
+):
     st.title("YAMAYA CONTENTFLOW")
     st.subheader("Reset your password")
 
@@ -46,15 +70,18 @@ if recovery_code:
         else:
             try:
                 complete_password_recovery(
-                    recovery_code,
+                    access_token,
+                    refresh_token,
                     new_password
                 )
-                st.query_params.clear()
+
+                st.session_state["recovery_completed"] = True
                 st.success("Password updated successfully!")
                 st.rerun()
+
             except Exception:
                 st.error(
-                    "Password reset failed. The recovery link may have expired. Request a new one."
+                    "Password reset failed. Request a fresh recovery email."
                 )
 
     st.stop()
