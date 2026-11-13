@@ -119,6 +119,7 @@ if not st.session_state.get("authenticated", False):
 # Load platform role
 platform_role = get_platform_role()
 st.session_state["platform_role"] = platform_role
+st.sidebar.write("Your platform role:", platform_role)
 # Logged-in user controls
 st.sidebar.write(
     f"Signed in as: {st.session_state.get('user_email', '')}"
