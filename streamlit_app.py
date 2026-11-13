@@ -138,17 +138,36 @@ brand_name = st.sidebar.selectbox(
     ["Yamaya Afrique", "ErikaL Naturals"]
 )
 
+workflow_options = [
+    "Content Ideation",
+    "Editorial Review",
+    "Content Repurposing Studio"
+]
+
+if platform_role == "platform_owner":
+    workflow_options.append("Platform Administration")
+
 workflow = st.sidebar.selectbox(
     "Choose Workflow",
-    [
-        "Content Ideation",
-        "Editorial Review",
-        "Content Repurposing Studio"
-    ]
+    workflow_options
 )
 
 st.divider()
+if workflow == "Platform Administration":
 
+    st.subheader("Platform Owner Dashboard")
+
+    st.write("Welcome to Yamaya ContentFlow administration.")
+
+    st.markdown("### Platform Management")
+
+    st.info("User and role management will be added here.")
+
+    st.info("Brand management will be added here.")
+
+    st.info("Invitations and account management will be added here.")
+
+elif workflow == "Content Ideation":
 if workflow == "Content Ideation":
 
     st.subheader("Generate Content")
