@@ -20,6 +20,8 @@ from auth import (
     assign_platform_role,
     get_brands,
     create_brand
+    get_brand_profile_data,
+    update_brand_profile
 )
 st.set_page_config(
     page_title="Yamaya ContentFlow",
