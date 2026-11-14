@@ -138,7 +138,7 @@ if not st.session_state.get("authenticated", False):
         else:
             st.warning("Enter your email address first.")
 
-        if st.button("Sign in"):
+    if st.button("Sign in"):
 
         if email.strip() and password:
             try:
@@ -152,7 +152,7 @@ if not st.session_state.get("authenticated", False):
                 st.error(f"Login failed: {error}")
 
         else:
-            st.warning("Enter your email and password.") 
+            st.warning("Enter your email and password.")
 
 if not check_session_timeout(cookie_manager):
     st.warning("Your session expired after inactivity. Please sign in again.")
