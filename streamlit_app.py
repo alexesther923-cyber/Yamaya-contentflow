@@ -138,28 +138,28 @@ if not st.session_state.get("authenticated", False):
         else:
             st.warning("Enter your email address first.")
 
-    if st.button("Sign in"):
+        if st.button("Sign in"):
 
         if email.strip() and password:
             try:
                 login(email, password)
+                create_persistent_session(cookie_manager)
 
                 st.success("Login successful!")
                 st.rerun()
 
-            except Exception:
-                st.error("Login failed. Check your email and password.")
+            except Exception as error:
+                st.error(f"Login failed: {error}")
 
         else:
-            st.warning("Enter your email and password.")
+            st.warning("Enter your email and password.") 
 
-    st.stop()
-
-
+if not check_session_timeout(cookie_manager):
+    st.warning("Your session expired after inactivity. Please sign in again.")
+    st.rerun()
 # LOAD PLATFORM ROLE
 platform_role = get_platform_role()
 st.session_state["platform_role"] = platform_role
-
 
 # LOGGED-IN USER CONTROLS
 st.sidebar.write(
@@ -172,9 +172,8 @@ st.sidebar.write(
 )
 
 if st.sidebar.button("Log out"):
-    logout()
+    logout_persistent(cookie_manager)
     st.rerun()
-
 
 # MAIN DASHBOARD
 st.title("YAMAYA CONTENTFLOW")
