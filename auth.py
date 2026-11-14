@@ -81,6 +81,17 @@ def get_platform_users():
     ).execute()
 
     return response.data or []
+def get_brands():
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("brands")
+        .select("id, name, description")
+        .order("name")
+        .execute()
+    )
+
+    return response.data or []
 def assign_platform_role(user_id, role):
     supabase = get_supabase()
 
