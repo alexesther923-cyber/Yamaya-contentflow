@@ -317,38 +317,49 @@ if workflow == "Platform Administration":
     st.divider()
 
     st.markdown("### Brand Management")
+# PLATFORM ADMINISTRATION
+if workflow == "Platform Administration":
 
-with st.form("create_brand_form"):
-    new_brand_name = st.text_input("Brand Name")
-    new_brand_description = st.text_area(
-        "Brand Description",
-        placeholder="Describe what this brand does and stands for."
-    )
+    st.subheader("Platform Owner Dashboard")
+    st.write("Welcome to Yamaya ContentFlow administration.")
 
-    submit_brand = st.form_submit_button(
-        "Create Brand",
-        type="primary"
-    )
+    # Keep your existing Registered Users and Assign Platform Roles code above this section.
 
-    if submit_brand:
-        if not new_brand_name.strip():
-            st.error("Please enter a brand name.")
-        else:
-            try:
-                create_brand(
-                    new_brand_name,
-                    new_brand_description
-                )
-                st.success(
-                    f"{new_brand_name} created successfully!"
-                )
-                st.rerun()
+    st.divider()
+    st.markdown("### Brand Management")
 
-            except Exception as error:
-                st.error(f"Could not create brand: {error}")
+    with st.form("create_brand_form"):
+        new_brand_name = st.text_input("Brand Name")
+        new_brand_description = st.text_area(
+            "Brand Description",
+            placeholder="Describe what this brand does and stands for."
+        )
+
+        submit_brand = st.form_submit_button(
+            "Create Brand",
+            type="primary"
+        )
+
+        if submit_brand:
+            if not new_brand_name.strip():
+                st.error("Please enter a brand name.")
+            else:
+                try:
+                    create_brand(
+                        new_brand_name,
+                        new_brand_description
+                    )
+                    st.success(
+                        f"{new_brand_name} created successfully!"
+                    )
+                    st.rerun()
+
+                except Exception as error:
+                    st.error(f"Could not create brand: {error}")
 
     st.markdown("### Invitations and Account Management")
     st.info("Invitations and account management will be added here.")
+
 
 # CONTENT IDEATION
 elif workflow == "Content Ideation":
@@ -357,7 +368,6 @@ elif workflow == "Content Ideation":
 
     topic = st.text_input("Content topic")
     audience = st.text_input("Target audience")
-
     format_type = st.selectbox(
         "Content format",
         ["Reel", "Carousel"]
