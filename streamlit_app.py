@@ -317,7 +317,35 @@ if workflow == "Platform Administration":
     st.divider()
 
     st.markdown("### Brand Management")
-    st.info("Brand management will be added here.")
+
+with st.form("create_brand_form"):
+    new_brand_name = st.text_input("Brand Name")
+    new_brand_description = st.text_area(
+        "Brand Description",
+        placeholder="Describe what this brand does and stands for."
+    )
+
+    submit_brand = st.form_submit_button(
+        "Create Brand",
+        type="primary"
+    )
+
+    if submit_brand:
+        if not new_brand_name.strip():
+            st.error("Please enter a brand name.")
+        else:
+            try:
+                create_brand(
+                    new_brand_name,
+                    new_brand_description
+                )
+                st.success(
+                    f"{new_brand_name} created successfully!"
+                )
+                st.rerun()
+
+            except Exception as error:
+                st.error(f"Could not create brand: {error}")
 
     st.markdown("### Invitations and Account Management")
     st.info("Invitations and account management will be added here.")
