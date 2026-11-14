@@ -168,10 +168,22 @@ st.caption(
 )
 
 # BRAND SELECTION
-brand_name = st.sidebar.selectbox(
-    "Select Brand",
-    ["Yamaya Afrique", "ErikaL Naturals"]
-)
+try:
+    available_brands = get_brands()
+    brand_names = [brand["name"] for brand in available_brands]
+
+    if brand_names:
+        brand_name = st.sidebar.selectbox(
+            "Select Brand",
+            brand_names
+        )
+    else:
+        brand_name = None
+        st.sidebar.warning("No brands available.")
+
+except Exception as error:
+    brand_name = None
+    st.sidebar.error(f"Could not load brands: {error}")
 
 # WORKFLOW MENU
 workflow_options = [
