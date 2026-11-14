@@ -105,9 +105,9 @@ if (
 # RESTORE PERSISTENT LOGIN
 if not st.session_state.get("authenticated", False):
     try:
-        restore_persistent_session(cookie_manager)
-    except Exception:
-        pass
+        restored = restore_persistent_session(cookie_manager)
+    except Exception as error:
+        st.error(f"Session restore error: {error}")
 # AUTHENTICATION GATE
 if not st.session_state.get("authenticated", False):
 
