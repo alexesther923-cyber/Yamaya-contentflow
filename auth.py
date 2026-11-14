@@ -104,6 +104,30 @@ def create_brand(brand_name, brand_description):
     ).execute()
 
     return response.data
+def get_brand_profile_data(brand_name):
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("brands")
+        .select("*")
+        .eq("name", brand_name)
+        .single()
+        .execute()
+    )
+
+    return response.data
+
+def update_brand_profile(brand_id, profile_data):
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("brands")
+        .update(profile_data)
+        .eq("id", brand_id)
+        .execute()
+    )
+
+    return response.data
 def assign_platform_role(user_id, role):
     supabase = get_supabase()
 
