@@ -8,3 +8,4 @@ PyMuPDF
 streamlit
 supabase==2.32.0
 streamlit-url-fragments==0.1.2
+extra-streamlit-components==0.1.81
