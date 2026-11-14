@@ -92,6 +92,18 @@ def get_brands():
     )
 
     return response.data or []
+def create_brand(brand_name, brand_description):
+    supabase = get_supabase()
+
+    response = supabase.rpc(
+        "create_brand",
+        {
+            "brand_name": brand_name,
+            "brand_description": brand_description
+        }
+    ).execute()
+
+    return response.data
 def assign_platform_role(user_id, role):
     supabase = get_supabase()
 
