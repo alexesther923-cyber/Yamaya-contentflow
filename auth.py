@@ -3,7 +3,11 @@ import streamlit as st
 from supabase import create_client
 from supabase_auth import SyncSupportedStorage
 from supabase.lib.client_options import SyncClientOptions
-
+import hashlib
+import json
+import secrets
+from datetime import datetime, timezone, timedelta
+from cryptography.fernet import Fernet
 
 APP_URL = "https://yamaya-contentflow.streamlit.app"
 
@@ -183,3 +187,231 @@ def logout():
         "recovery_completed"
     ]:
         st.session_state.pop(key, None)
+        
+SESSION_COOKIE = "yamaya_session"
+SESSION_TIMEOUT_MINUTES = 30
+SESSION_MAX_DAYS = 30
+
+
+def _get_fernet():
+    key = st.secrets["SESSION_ENCRYPTION_KEY"]
+    return Fernet(key.encode())
+
+
+def _hash_session(token):
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def _encrypt_session(access_token, refresh_token):
+    data = json.dumps({
+        "access_token": access_token,
+        "refresh_token": refresh_token
+    }).encode()
+
+    return _get_fernet().encrypt(data).decode()
+
+
+def _read_session_record(session_hash):
+    result = get_supabase().rpc(
+        "get_app_session",
+        {"p_session_token_hash": session_hash}
+    ).execute()
+
+    data = result.data
+
+    if isinstance(data, list):
+        return data[0] if data else None
+
+    return data if isinstance(data, dict) else None
+
+
+def _clear_persistent_login(cookie_manager, session_hash=None):
+    if session_hash:
+        try:
+            get_supabase().rpc(
+                "revoke_app_session",
+                {"p_session_token_hash": session_hash}
+            ).execute()
+        except Exception:
+            pass
+
+    try:
+        cookie_manager.delete(SESSION_COOKIE)
+    except Exception:
+        pass
+
+    try:
+        get_supabase().auth.sign_out()
+    except Exception:
+        pass
+
+    for key in [
+        "authenticated",
+        "user_email",
+        "user_id",
+        "auth_access_token",
+        "auth_refresh_token",
+        "persistent_session_hash",
+        "platform_role"
+    ]:
+        st.session_state.pop(key, None)
+
+
+def create_persistent_session(cookie_manager):
+    access_token = st.session_state["auth_access_token"]
+    refresh_token = st.session_state["auth_refresh_token"]
+
+    token = secrets.token_urlsafe(32)
+    session_hash = _hash_session(token)
+
+    encrypted = _encrypt_session(
+        access_token,
+        refresh_token
+    )
+
+    expires = (
+        datetime.now(timezone.utc)
+        + timedelta(days=SESSION_MAX_DAYS)
+    )
+
+    get_supabase().rpc(
+        "create_app_session",
+        {
+            "p_session_token_hash": session_hash,
+            "p_encrypted_session": encrypted,
+            "p_expires_at": expires.isoformat()
+        }
+    ).execute()
+
+    cookie_manager.set(
+        SESSION_COOKIE,
+        token,
+        max_age=SESSION_MAX_DAYS * 86400,
+        secure=True,
+        same_site="strict"
+    )
+
+    st.session_state["persistent_session_hash"] = session_hash
+
+
+def restore_persistent_session(cookie_manager):
+    token = cookie_manager.get(SESSION_COOKIE)
+
+    if not token:
+        return False
+
+    session_hash = _hash_session(token)
+    record = _read_session_record(session_hash)
+
+    if not record:
+        cookie_manager.delete(SESSION_COOKIE)
+        return False
+
+    last_activity = datetime.fromisoformat(
+        record["last_activity_at"].replace("Z", "+00:00")
+    )
+
+    idle_time = (
+        datetime.now(timezone.utc) - last_activity
+    )
+
+    if idle_time > timedelta(minutes=SESSION_TIMEOUT_MINUTES):
+        _clear_persistent_login(cookie_manager, session_hash)
+        return False
+
+    try:
+        encrypted = record["encrypted_session"].encode()
+        saved = json.loads(
+            _get_fernet().decrypt(encrypted).decode()
+        )
+    except Exception:
+        _clear_persistent_login(cookie_manager, session_hash)
+        return False
+
+    response = get_supabase().auth.set_session(
+        saved["access_token"],
+        saved["refresh_token"]
+    )
+
+    if not response.session:
+        return False
+
+    if str(response.user.id) != str(record["user_id"]):
+        _clear_persistent_login(cookie_manager, session_hash)
+        return False
+
+    session = response.session
+
+    st.session_state["authenticated"] = True
+    st.session_state["user_email"] = response.user.email
+    st.session_state["user_id"] = str(response.user.id)
+    st.session_state["auth_access_token"] = session.access_token
+    st.session_state["auth_refresh_token"] = session.refresh_token
+    st.session_state["persistent_session_hash"] = session_hash
+
+    updated_encrypted = _encrypt_session(
+        session.access_token,
+        session.refresh_token
+    )
+
+    get_supabase().rpc(
+        "update_app_session",
+        {
+            "p_session_token_hash": session_hash,
+            "p_encrypted_session": updated_encrypted
+        }
+    ).execute()
+
+    get_supabase().rpc(
+        "touch_app_session",
+        {"p_session_token_hash": session_hash}
+    ).execute()
+
+    return True
+
+
+def check_session_timeout(cookie_manager):
+    session_hash = st.session_state.get(
+        "persistent_session_hash"
+    )
+
+    if not session_hash:
+        return True
+
+    record = _read_session_record(session_hash)
+
+    if not record:
+        _clear_persistent_login(cookie_manager)
+        return False
+
+    last_activity = datetime.fromisoformat(
+        record["last_activity_at"].replace("Z", "+00:00")
+    )
+
+    if (
+        datetime.now(timezone.utc) - last_activity
+        > timedelta(minutes=SESSION_TIMEOUT_MINUTES)
+    ):
+        _clear_persistent_login(cookie_manager, session_hash)
+        return False
+
+    get_supabase().rpc(
+        "touch_app_session",
+        {"p_session_token_hash": session_hash}
+    ).execute()
+
+    return True
+
+
+def logout_persistent(cookie_manager):
+    session_hash = st.session_state.get(
+        "persistent_session_hash"
+    )
+
+    if not session_hash:
+        token = cookie_manager.get(SESSION_COOKIE)
+        if token:
+            session_hash = _hash_session(token)
+
+    _clear_persistent_login(cookie_manager, session_hash)
+    st.session_state.pop("supabase_client", None)
