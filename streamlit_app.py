@@ -153,7 +153,7 @@ if not st.session_state.get("authenticated", False):
 
         else:
             st.warning("Enter your email and password.")
-
+    st.stop()
 if not check_session_timeout(cookie_manager):
     st.warning("Your session expired after inactivity. Please sign in again.")
     st.rerun()
