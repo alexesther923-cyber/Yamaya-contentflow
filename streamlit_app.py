@@ -19,7 +19,7 @@ from auth import (
     get_platform_users,
     assign_platform_role,
     get_brands,
-    create_brand
+    create_brand,
     get_brand_profile_data,
     update_brand_profile
 )
@@ -315,21 +315,13 @@ if workflow == "Platform Administration":
     except Exception as error:
         st.error(f"Could not load users: {error}")
 
+
+
     # OTHER MANAGEMENT SECTIONS
     st.divider()
-
-    st.markdown("### Brand Management")
-# PLATFORM ADMINISTRATION
-if workflow == "Platform Administration":
-
-    st.subheader("Platform Owner Dashboard")
-    st.write("Welcome to Yamaya ContentFlow administration.")
-
-    # Keep your existing Registered Users and Assign Platform Roles code above this section.
-
-    st.divider()
     st.markdown("### Brand Management")
 
+    # CREATE BRAND
     with st.form("create_brand_form"):
         new_brand_name = st.text_input("Brand Name")
         new_brand_description = st.text_area(
@@ -355,10 +347,110 @@ if workflow == "Platform Administration":
                         f"{new_brand_name} created successfully!"
                     )
                     st.rerun()
-
                 except Exception as error:
                     st.error(f"Could not create brand: {error}")
 
+    # EDIT BRAND PROFILE
+    st.divider()
+    st.markdown("### Edit Brand Profile")
+
+    try:
+        profile_brands = get_brands()
+        profile_brand_names = [
+            b["name"] for b in profile_brands
+        ]
+
+        if profile_brand_names:
+            selected_profile_brand = st.selectbox(
+                "Choose a brand to edit",
+                profile_brand_names,
+                key="profile_brand_selector"
+            )
+
+            profile = get_brand_profile_data(
+                selected_profile_brand
+            )
+
+            with st.form("edit_brand_profile_form"):
+                purpose = st.text_area(
+                    "Brand Purpose",
+                    value=profile.get("purpose") or ""
+                )
+                target_audience = st.text_area(
+                    "Target Audience",
+                    value=profile.get("target_audience") or ""
+                )
+                brand_values = st.text_area(
+                    "Brand Values",
+                    value=profile.get("brand_values") or ""
+                )
+                tone_of_voice = st.text_area(
+                    "Tone of Voice",
+                    value=profile.get("tone_of_voice") or ""
+                )
+                brand_personality = st.text_area(
+                    "Brand Personality",
+                    value=profile.get("brand_personality") or ""
+                )
+                content_pillars = st.text_area(
+                    "Content Pillars",
+                    value=profile.get("content_pillars") or ""
+                )
+                visual_guidelines = st.text_area(
+                    "Visual Guidelines",
+                    value=profile.get("visual_guidelines") or ""
+                )
+                brand_colors = st.text_input(
+                    "Brand Colours",
+                    value=profile.get("brand_colors") or ""
+                )
+                brand_fonts = st.text_input(
+                    "Brand Fonts",
+                    value=profile.get("brand_fonts") or ""
+                )
+                content_restrictions = st.text_area(
+                    "Content Restrictions",
+                    value=profile.get("content_restrictions") or ""
+                )
+                key_messages = st.text_area(
+                    "Key Messages",
+                    value=profile.get("key_messages") or ""
+                )
+
+                save_profile = st.form_submit_button(
+                    "Save Brand Profile",
+                    type="primary"
+                )
+
+                if save_profile:
+                    update_brand_profile(
+                        profile["id"],
+                        {
+                            "purpose": purpose,
+                            "target_audience": target_audience,
+                            "brand_values": brand_values,
+                            "tone_of_voice": tone_of_voice,
+                            "brand_personality": brand_personality,
+                            "content_pillars": content_pillars,
+                            "visual_guidelines": visual_guidelines,
+                            "brand_colors": brand_colors,
+                            "brand_fonts": brand_fonts,
+                            "content_restrictions": content_restrictions,
+                            "key_messages": key_messages
+                        }
+                    )
+
+                    st.success("Brand profile saved successfully!")
+                    st.rerun()
+
+        else:
+            st.info("Create a brand before editing its profile.")
+
+    except Exception as error:
+        st.error(f"Could not load brand profile: {error}")
+
+    # ACCOUNT MANAGEMENT
+    st.divider()
     st.markdown("### Invitations and Account Management")
     st.info("Invitations and account management will be added here.")
 
