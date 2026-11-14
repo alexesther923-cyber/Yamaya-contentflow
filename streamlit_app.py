@@ -2,6 +2,7 @@
 import streamlit as st
 import tempfile
 import os
+import extra_streamlit_components as stx
 
 from gemini_generator import generate_content_ideas
 from editorial_review import review_content
@@ -33,6 +34,9 @@ st.set_page_config(
     layout="centered"
 )
 
+cookie_manager = stx.CookieManager(
+    key="yamaya_cookie_manager"
+)
 # PASSWORD RECOVERY
 fragments = get_fragments()
 
