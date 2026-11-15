@@ -27,6 +27,9 @@ from auth import (
     restore_persistent_session,
     check_session_timeout,
     logout_persistent
+    save_content_draft,
+    get_content_draft,
+    delete_content_draft,
 )
 st.set_page_config(
     page_title="Yamaya ContentFlow",
@@ -192,12 +195,21 @@ try:
             "Select Brand",
             brand_names
         )
+
+        selected_brand_id = next(
+            brand["id"]
+            for brand in available_brands
+            if brand["name"] == brand_name
+        )
+
     else:
         brand_name = None
+        selected_brand_id = None
         st.sidebar.warning("No brands available.")
 
 except Exception as error:
     brand_name = None
+    selected_brand_id = None
     st.sidebar.error(f"Could not load brands: {error}")
 
 # WORKFLOW MENU
@@ -472,45 +484,95 @@ elif workflow == "Content Ideation":
 
     st.subheader("Generate Content")
 
-    topic = st.text_input("Content topic")
-    audience = st.text_input("Target audience")
-    format_type = st.selectbox(
-        "Content format",
-        ["Reel", "Carousel"]
-    )
+    if not selected_brand_id:
+        st.warning("Please select a brand first.")
 
-    tone = st.text_input(
-        "Preferred tone",
-        "Engaging and relatable"
-    )
+    else:
+        saved_draft = get_content_draft(
+            selected_brand_id,
+            "Content Ideation"
+        )
 
-    if st.button("Generate Content", type="primary"):
+        topic = st.text_input(
+            "Content topic",
+            value=saved_draft.get("topic", ""),
+            key=f"ideation_topic_{selected_brand_id}"
+        )
 
-        if not topic or not audience:
-            st.warning(
-                "Please enter a topic and target audience."
+        audience = st.text_input(
+            "Target audience",
+            value=saved_draft.get("audience", ""),
+            key=f"ideation_audience_{selected_brand_id}"
+        )
+
+        format_type = st.selectbox(
+            "Content format",
+            ["Reel", "Carousel"],
+            index=["Reel", "Carousel"].index(
+                saved_draft.get("format_type", "Reel")
+            ) if saved_draft.get("format_type", "Reel") in ["Reel", "Carousel"] else 0,
+            key=f"ideation_format_{selected_brand_id}"
+        )
+
+        tone = st.text_input(
+            "Preferred tone",
+            value=saved_draft.get(
+                "tone",
+                "Engaging and relatable"
+            ),
+            key=f"ideation_tone_{selected_brand_id}"
+        )
+
+        current_draft = {
+            "topic": topic,
+            "audience": audience,
+            "format_type": format_type,
+            "tone": tone
+        }
+
+        if current_draft != saved_draft:
+            save_content_draft(
+                selected_brand_id,
+                "Content Ideation",
+                current_draft
             )
 
-        else:
-            with st.spinner("Generating content..."):
+        st.caption("Your draft is saved automatically.")
 
-                try:
-                    result = generate_content_ideas(
-                        topic,
-                        audience,
-                        format_type,
-                        tone,
-                        brand_name
-                    )
+        if st.button("Clear Draft"):
+            delete_content_draft(
+                selected_brand_id,
+                "Content Ideation"
+            )
+            st.rerun()
 
-                    st.session_state["result"] = {
-                        "Content Ideas": result
-                    }
+        if st.button("Generate Content", type="primary"):
 
-                except Exception as error:
-                    st.error(
-                        f"Generation failed: {error}"
-                    )
+            if not topic or not audience:
+                st.warning(
+                    "Please enter a topic and target audience."
+                )
+
+            else:
+                with st.spinner("Generating content..."):
+
+                    try:
+                        result = generate_content_ideas(
+                            topic,
+                            audience,
+                            format_type,
+                            tone,
+                            brand_name
+                        )
+
+                        st.session_state["result"] = {
+                            "Content Ideas": result
+                        }
+
+                    except Exception as error:
+                        st.error(
+                            f"Generation failed: {error}"
+                        )
 
 
 # EDITORIAL REVIEW
