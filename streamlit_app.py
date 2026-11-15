@@ -1000,7 +1000,7 @@ elif workflow == "Content Repurposing Studio":
             placeholder="e.g. December social campaign"
         )
 
-                if st.button(
+        if st.button(
             "Save Draft",
             key=f"save_repurposing_{selected_brand_id}"
         ):
