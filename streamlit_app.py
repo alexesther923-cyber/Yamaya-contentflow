@@ -227,10 +227,14 @@ workflow_options = [
 
 if platform_role == "platform_owner":
     workflow_options.append("Platform Administration")
-
+if "pending_workflow" in st.session_state:
+    st.session_state["workflow_selector"] = (
+        st.session_state.pop("pending_workflow")
+    )
 workflow = st.sidebar.selectbox(
     "Choose Workflow",
-    workflow_options
+    workflow_options,
+    key="workflow_selector"
 )
 
 st.divider()
@@ -484,6 +488,147 @@ if workflow == "Platform Administration":
     st.markdown("### Invitations and Account Management")
     st.info("Invitations and account management will be added here.")
 
+
+# MY DRAFTS LIBRARY
+elif workflow == "My Drafts":
+
+    st.subheader("My Drafts")
+    st.write("Your saved content drafts.")
+
+    if not selected_brand_id:
+        st.warning("Please select a brand first.")
+
+    else:
+
+        saved_drafts = get_saved_content_drafts(
+            selected_brand_id
+        )
+
+        if not saved_drafts:
+            st.info(
+                "You haven't saved any drafts for this brand yet."
+            )
+
+        else:
+
+            workflow_filter = st.selectbox(
+                "Filter by workflow",
+                [
+                    "All Workflows",
+                    "Content Ideation",
+                    "Editorial Review",
+                    "Content Repurposing Studio"
+                ],
+                key="draft_workflow_filter"
+            )
+
+            filtered_drafts = saved_drafts
+
+            if workflow_filter != "All Workflows":
+                filtered_drafts = [
+                    draft for draft in saved_drafts
+                    if draft["workflow"] == workflow_filter
+                ]
+
+            st.caption(
+                f"{len(filtered_drafts)} saved draft(s)"
+            )
+
+            for draft in filtered_drafts:
+
+                with st.container(border=True):
+
+                    st.markdown(f"**{draft['title']}**")
+
+                    st.caption(
+                        f"Workflow: {draft['workflow']}"
+                    )
+
+                    st.caption(
+                        f"Last updated: {draft['updated_at']}"
+                    )
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+
+                        if st.button(
+                            "Open Draft",
+                            key=f"open_draft_{draft['id']}"
+                        ):
+
+                            draft_data = draft["draft_data"]
+                            draft_workflow = draft["workflow"]
+
+                            save_content_draft(
+                                selected_brand_id,
+                                draft_workflow,
+                                draft_data
+                            )
+
+                            if draft_workflow == "Content Ideation":
+
+                                st.session_state[
+                                    f"ideation_topic_{selected_brand_id}"
+                                ] = draft_data.get("topic", "")
+
+                                st.session_state[
+                                    f"ideation_audience_{selected_brand_id}"
+                                ] = draft_data.get("audience", "")
+
+                                st.session_state[
+                                    f"ideation_format_{selected_brand_id}"
+                                ] = draft_data.get("format_type", "Reel")
+
+                                st.session_state[
+                                    f"ideation_tone_{selected_brand_id}"
+                                ] = draft_data.get(
+                                    "tone",
+                                    "Engaging and relatable"
+                                )
+
+                            elif draft_workflow == "Editorial Review":
+
+                                st.session_state[
+                                    f"editorial_content_{selected_brand_id}"
+                                ] = draft_data.get("content", "")
+
+                            elif draft_workflow == "Content Repurposing Studio":
+
+                                st.session_state[
+                                    f"repurpose_source_{selected_brand_id}"
+                                ] = draft_data.get(
+                                    "source_option",
+                                    "Paste text"
+                                )
+
+                                st.session_state[
+                                    f"repurpose_text_{selected_brand_id}"
+                                ] = draft_data.get("source_text", "")
+
+                                st.session_state[
+                                    f"repurpose_formats_{selected_brand_id}"
+                                ] = draft_data.get("output_formats", [])
+
+                            st.session_state["pending_workflow"] = (
+                                draft_workflow
+                            )
+
+                            st.rerun()
+
+                    with col2:
+
+                        if st.button(
+                            "Delete",
+                            key=f"delete_draft_{draft['id']}"
+                        ):
+
+                            delete_saved_content_draft(
+                                draft["id"]
+                            )
+
+                            st.success("Draft deleted.")
+                            st.rerun()
 
 # CONTENT IDEATION
 elif workflow == "Content Ideation":
