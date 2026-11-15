@@ -641,117 +641,166 @@ elif workflow == "Content Repurposing Studio":
 
     st.subheader("Repurpose Existing Content")
 
-    source_option = st.radio(
-        "Choose your source",
-        [
-            "Paste text",
-            "Upload a document or image"
-        ]
-    )
-
-    source_text = None
-    file_path = None
-    uploaded_file = None
-
-    if source_option == "Paste text":
-
-        source_text = st.text_area(
-            "Paste your source material",
-            height=250
-        )
+    if not selected_brand_id:
+        st.warning("Please select a brand first.")
 
     else:
-
-        uploaded_file = st.file_uploader(
-            "Upload PDF, DOCX or image",
-            type=[
-                "pdf",
-                "docx",
-                "jpg",
-                "jpeg",
-                "png",
-                "webp"
-            ]
+        saved_draft = get_content_draft(
+            selected_brand_id,
+            "Content Repurposing Studio"
         )
 
-    output_formats = st.multiselect(
-        "Choose output formats",
-        [
+        source_option = st.radio(
+            "Choose your source",
+            [
+                "Paste text",
+                "Upload a document or image"
+            ],
+            index=(
+                0 if saved_draft.get("source_option", "Paste text") == "Paste text"
+                else 1
+            ),
+            key=f"repurpose_source_{selected_brand_id}"
+        )
+
+        source_text = None
+        file_path = None
+        uploaded_file = None
+
+        if source_option == "Paste text":
+
+            source_text = st.text_area(
+                "Paste your source material",
+                value=saved_draft.get("source_text", ""),
+                height=250,
+                key=f"repurpose_text_{selected_brand_id}"
+            )
+
+        else:
+
+            st.info(
+                "Uploaded files must be selected again after refreshing."
+            )
+
+            uploaded_file = st.file_uploader(
+                "Upload PDF, DOCX or image",
+                type=[
+                    "pdf",
+                    "docx",
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp"
+                ],
+                key=f"repurpose_file_{selected_brand_id}"
+            )
+
+        output_options = [
             "Carousel",
             "Reel",
             "Blog Article",
             "Newsletter",
             "Social Media Caption"
         ]
-    )
 
-    if st.button("Repurpose Content", type="primary"):
+        output_formats = st.multiselect(
+            "Choose output formats",
+            output_options,
+            default=[
+                item for item in saved_draft.get("output_formats", [])
+                if item in output_options
+            ],
+            key=f"repurpose_formats_{selected_brand_id}"
+        )
 
-        if (
-            source_option == "Paste text"
-            and not source_text.strip()
-        ):
-            st.warning(
-                "Please paste your source material."
+        current_draft = {
+            "source_option": source_option,
+            "source_text": source_text or "",
+            "output_formats": output_formats
+        }
+
+        if current_draft != saved_draft:
+            save_content_draft(
+                selected_brand_id,
+                "Content Repurposing Studio",
+                current_draft
             )
 
-        elif (
-            source_option == "Upload a document or image"
-            and not uploaded_file
-        ):
-            st.warning("Please upload a file.")
+        st.caption("Your text and output selections save automatically.")
 
-        elif not output_formats:
-            st.warning(
-                "Please select at least one output format."
+        if st.button("Clear Draft"):
+            delete_content_draft(
+                selected_brand_id,
+                "Content Repurposing Studio"
             )
+            st.rerun()
 
-        else:
-            try:
+        if st.button("Repurpose Content", type="primary"):
 
-                if uploaded_file:
+            if (
+                source_option == "Paste text"
+                and not source_text.strip()
+            ):
+                st.warning(
+                    "Please paste your source material."
+                )
 
-                    suffix = os.path.splitext(
-                        uploaded_file.name
-                    )[1]
+            elif (
+                source_option == "Upload a document or image"
+                and not uploaded_file
+            ):
+                st.warning("Please upload a file.")
 
-                    with tempfile.NamedTemporaryFile(
-                        delete=False,
-                        suffix=suffix
-                    ) as temp_file:
+            elif not output_formats:
+                st.warning(
+                    "Please select at least one output format."
+                )
 
-                        temp_file.write(
-                            uploaded_file.getvalue()
+            else:
+                try:
+
+                    if uploaded_file:
+
+                        suffix = os.path.splitext(
+                            uploaded_file.name
+                        )[1]
+
+                        with tempfile.NamedTemporaryFile(
+                            delete=False,
+                            suffix=suffix
+                        ) as temp_file:
+
+                            temp_file.write(
+                                uploaded_file.getvalue()
+                            )
+
+                            file_path = temp_file.name
+
+                    with st.spinner(
+                        "Processing and repurposing content..."
+                    ):
+
+                        result = run_contentflow_pipeline(
+                            brand_name=brand_name,
+                            output_formats=output_formats,
+                            source_text=source_text,
+                            file_path=file_path
                         )
 
-                        file_path = temp_file.name
-
-                with st.spinner(
-                    "Processing and repurposing content..."
-                ):
-
-                    result = run_contentflow_pipeline(
-                        brand_name=brand_name,
-                        output_formats=output_formats,
-                        source_text=source_text,
-                        file_path=file_path
+                    st.session_state["result"] = (
+                        result["generated_content"]
                     )
 
-                st.session_state["result"] = (
-                    result["generated_content"]
-                )
+                except Exception as error:
 
-            except Exception as error:
+                    st.error(
+                        f"Repurposing failed: {error}"
+                    )
 
-                st.error(
-                    f"Repurposing failed: {error}"
-                )
+                finally:
 
-            finally:
-
-                if file_path and os.path.exists(file_path):
-                    os.remove(file_path)
-
+                    if file_path and os.path.exists(file_path):
+                        os.remove(file_path)
 
 # DISPLAY GENERATED CONTENT
 if "result" in st.session_state:
