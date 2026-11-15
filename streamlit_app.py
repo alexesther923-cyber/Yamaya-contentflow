@@ -580,33 +580,60 @@ elif workflow == "Editorial Review":
 
     st.subheader("Review Existing Content")
 
-    content = st.text_area(
-        "Paste the content you want reviewed",
-        height=250
-    )
+    if not selected_brand_id:
+        st.warning("Please select a brand first.")
 
-    if st.button("Review Content", type="primary"):
+    else:
+        saved_draft = get_content_draft(
+            selected_brand_id,
+            "Editorial Review"
+        )
 
-        if not content.strip():
-            st.warning("Please paste content first.")
+        content = st.text_area(
+            "Paste the content you want reviewed",
+            value=saved_draft.get("content", ""),
+            height=250,
+            key=f"editorial_content_{selected_brand_id}"
+        )
 
-        else:
-            with st.spinner("Reviewing content..."):
+        if content != saved_draft.get("content", ""):
+            save_content_draft(
+                selected_brand_id,
+                "Editorial Review",
+                {"content": content}
+            )
 
-                try:
-                    result = review_content(
-                        content,
-                        brand_name
-                    )
+        st.caption("Your draft is saved automatically.")
 
-                    st.session_state["result"] = {
-                        "Editorial Review": result
-                    }
+        if st.button("Clear Draft"):
+            delete_content_draft(
+                selected_brand_id,
+                "Editorial Review"
+            )
+            st.rerun()
 
-                except Exception as error:
-                    st.error(
-                        f"Review failed: {error}"
-                    )
+        if st.button("Review Content", type="primary"):
+
+            if not content.strip():
+                st.warning("Please paste content first.")
+
+            else:
+                with st.spinner("Reviewing content..."):
+
+                    try:
+                        result = review_content(
+                            content,
+                            brand_name
+                        )
+
+                        st.session_state["result"] = {
+                            "Editorial Review": result
+                        }
+
+                    except Exception as error:
+                        st.error(
+                            f"Review failed: {error}"
+                        )
 
 
 # CONTENT REPURPOSING STUDIO
