@@ -730,15 +730,16 @@ elif workflow == "Content Ideation":
 
             else:
                 try:
-save_saved_content_draft(
-    selected_brand_id,
-    draft_title.strip(),
-    "Content Ideation",
-    {
-        **current_draft,
-        "generated_result": st.session_state.get("result", {})
-    }
-)
+                    save_saved_content_draft(
+                        selected_brand_id,
+                        draft_title.strip(),
+                        "Content Ideation",
+                        {
+                            **current_draft,
+                            "generated_result": st.session_state.get("result", {})
+                        }
+                    )
+
                     st.success("Draft saved to My Drafts!")
 
                 except Exception as error:
