@@ -596,6 +596,7 @@ elif workflow == "Content Ideation":
                             f"Generation failed: {error}"
                         )
 
+
 # EDITORIAL REVIEW
 elif workflow == "Editorial Review":
 
@@ -605,6 +606,16 @@ elif workflow == "Editorial Review":
         st.warning("Please select a brand first.")
 
     else:
+
+        def clear_editorial_draft():
+            delete_content_draft(
+                selected_brand_id,
+                "Editorial Review"
+            )
+            st.session_state[
+                f"editorial_content_{selected_brand_id}"
+            ] = ""
+
         saved_draft = get_content_draft(
             selected_brand_id,
             "Editorial Review"
@@ -617,21 +628,21 @@ elif workflow == "Editorial Review":
             key=f"editorial_content_{selected_brand_id}"
         )
 
-        if content != saved_draft.get("content", ""):
+        current_draft = {"content": content}
+
+        if content.strip() and current_draft != saved_draft:
             save_content_draft(
                 selected_brand_id,
                 "Editorial Review",
-                {"content": content}
+                current_draft
             )
 
         st.caption("Your draft is saved automatically.")
 
-        if st.button("Clear Draft"):
-            delete_content_draft(
-                selected_brand_id,
-                "Editorial Review"
-            )
-            st.rerun()
+        st.button(
+            "Clear Draft",
+            on_click=clear_editorial_draft
+        )
 
         if st.button("Review Content", type="primary"):
 
@@ -655,7 +666,6 @@ elif workflow == "Editorial Review":
                         st.error(
                             f"Review failed: {error}"
                         )
-
 
 # CONTENT REPURPOSING STUDIO
 elif workflow == "Content Repurposing Studio":
