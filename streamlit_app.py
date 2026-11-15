@@ -1000,7 +1000,7 @@ elif workflow == "Content Repurposing Studio":
             placeholder="e.g. December social campaign"
         )
 
-        if st.button(
+                if st.button(
             "Save Draft",
             key=f"save_repurposing_{selected_brand_id}"
         ):
@@ -1019,7 +1019,8 @@ elif workflow == "Content Repurposing Studio":
                     save_data = {
                         "source_option": source_option,
                         "source_text": source_text,
-                        "output_formats": output_formats
+                        "output_formats": output_formats,
+                        "generated_result": st.session_state.get("result", {})
                     }
 
                     save_saved_content_draft(
