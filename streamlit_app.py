@@ -557,7 +557,16 @@ elif workflow == "My Drafts":
                             key=f"open_draft_{draft['id']}"
                         ):
 
-                            draft_data = draft["draft_data"]
+                            draft_data = draft["draft_data"] 
+                            saved_result = draft_data.get(
+                                "generated_result",
+                                {}
+                            )
+
+                            if saved_result:
+                                st.session_state["result"] = saved_result
+                            else:
+                                st.session_state.pop("result", None)
                             draft_workflow = draft["workflow"]
 
                             save_content_draft(
