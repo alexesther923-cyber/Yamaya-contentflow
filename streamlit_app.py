@@ -827,7 +827,7 @@ elif workflow == "Editorial Review":
             placeholder="e.g. November article review"
         )
 
-        if st.button(
+          if st.button(
             "Save Draft",
             key=f"save_editorial_{selected_brand_id}"
         ):
@@ -844,7 +844,10 @@ elif workflow == "Editorial Review":
                         selected_brand_id,
                         draft_title.strip(),
                         "Editorial Review",
-                        current_draft
+                        {
+                            **current_draft,
+                            "generated_result": st.session_state.get("result", {})
+                        }
                     )
 
                     st.success("Draft saved to My Drafts!")
