@@ -216,11 +216,13 @@ except Exception as error:
     selected_brand_id = None
     st.sidebar.error(f"Could not load brands: {error}")
 
+
 # WORKFLOW MENU
 workflow_options = [
     "Content Ideation",
     "Editorial Review",
-    "Content Repurposing Studio"
+    "Content Repurposing Studio",
+    "My Drafts"
 ]
 
 if platform_role == "platform_owner":
