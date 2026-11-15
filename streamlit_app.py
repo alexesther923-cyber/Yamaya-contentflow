@@ -26,7 +26,7 @@ from auth import (
     create_persistent_session,
     restore_persistent_session,
     check_session_timeout,
-    logout_persistent
+    logout_persistent,
     save_content_draft,
     get_content_draft,
     delete_content_draft,
