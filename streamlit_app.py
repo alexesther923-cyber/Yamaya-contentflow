@@ -818,6 +818,37 @@ elif workflow == "Editorial Review":
 
         st.caption("Your draft is saved automatically.")
 
+        draft_title = st.text_input(
+            "Name this draft",
+            key=f"saved_editorial_title_{selected_brand_id}",
+            placeholder="e.g. November article review"
+        )
+
+        if st.button(
+            "Save Draft",
+            key=f"save_editorial_{selected_brand_id}"
+        ):
+
+            if not content.strip():
+                st.warning("Enter some content before saving.")
+
+            elif not draft_title.strip():
+                st.warning("Please give your draft a name.")
+
+            else:
+                try:
+                    save_saved_content_draft(
+                        selected_brand_id,
+                        draft_title.strip(),
+                        "Editorial Review",
+                        current_draft
+                    )
+
+                    st.success("Draft saved to My Drafts!")
+
+                except Exception as error:
+                    st.error(f"Could not save draft: {error}")
+
         st.button(
             "Clear Draft",
             on_click=clear_editorial_draft
