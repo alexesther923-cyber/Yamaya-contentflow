@@ -667,6 +667,7 @@ elif workflow == "Editorial Review":
                             f"Review failed: {error}"
                         )
 
+
 # CONTENT REPURPOSING STUDIO
 elif workflow == "Content Repurposing Studio":
 
@@ -676,6 +677,25 @@ elif workflow == "Content Repurposing Studio":
         st.warning("Please select a brand first.")
 
     else:
+
+        def clear_repurposing_draft():
+            delete_content_draft(
+                selected_brand_id,
+                "Content Repurposing Studio"
+            )
+
+            st.session_state[
+                f"repurpose_source_{selected_brand_id}"
+            ] = "Paste text"
+
+            st.session_state[
+                f"repurpose_text_{selected_brand_id}"
+            ] = ""
+
+            st.session_state[
+                f"repurpose_formats_{selected_brand_id}"
+            ] = []
+
         saved_draft = get_content_draft(
             selected_brand_id,
             "Content Repurposing Studio"
@@ -759,12 +779,10 @@ elif workflow == "Content Repurposing Studio":
 
         st.caption("Your text and output selections save automatically.")
 
-        if st.button("Clear Draft"):
-            delete_content_draft(
-                selected_brand_id,
-                "Content Repurposing Studio"
-            )
-            st.rerun()
+        st.button(
+            "Clear Draft",
+            on_click=clear_repurposing_draft
+        )
 
         if st.button("Repurpose Content", type="primary"):
 
@@ -832,6 +850,7 @@ elif workflow == "Content Repurposing Studio":
 
                     if file_path and os.path.exists(file_path):
                         os.remove(file_path)
+
 
 # DISPLAY GENERATED CONTENT
 if "result" in st.session_state:
