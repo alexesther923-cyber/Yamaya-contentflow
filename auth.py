@@ -441,16 +441,14 @@ def get_content_draft(brand_id, workflow):
         .eq("user_id", st.session_state["user_id"])
         .eq("brand_id", brand_id)
         .eq("workflow", workflow)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
 
     if response.data:
-        return response.data["draft_data"]
+        return response.data[0]["draft_data"]
 
     return {}
-
-
 def delete_content_draft(brand_id, workflow):
     supabase = get_supabase()
 
