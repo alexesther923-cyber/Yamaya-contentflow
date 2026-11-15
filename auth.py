@@ -415,3 +415,50 @@ def logout_persistent(cookie_manager):
 
     _clear_persistent_login(cookie_manager, session_hash)
     st.session_state.pop("supabase_client", None)
+def save_content_draft(brand_id, workflow, draft_data):
+    supabase = get_supabase()
+
+    response = supabase.table("content_drafts").upsert(
+        {
+            "user_id": st.session_state["user_id"],
+            "brand_id": brand_id,
+            "workflow": workflow,
+            "draft_data": draft_data,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        },
+        on_conflict="user_id,brand_id,workflow"
+    ).execute()
+
+    return response.data
+
+
+def get_content_draft(brand_id, workflow):
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("content_drafts")
+        .select("draft_data")
+        .eq("user_id", st.session_state["user_id"])
+        .eq("brand_id", brand_id)
+        .eq("workflow", workflow)
+        .maybe_single()
+        .execute()
+    )
+
+    if response.data:
+        return response.data["draft_data"]
+
+    return {}
+
+
+def delete_content_draft(brand_id, workflow):
+    supabase = get_supabase()
+
+    return (
+        supabase.table("content_drafts")
+        .delete()
+        .eq("user_id", st.session_state["user_id"])
+        .eq("brand_id", brand_id)
+        .eq("workflow", workflow)
+        .execute()
+    )
