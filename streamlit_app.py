@@ -988,7 +988,45 @@ elif workflow == "Content Repurposing Studio":
             )
 
         st.caption("Your text and output selections save automatically.")
+        draft_title = st.text_input(
+            "Name this draft",
+            key=f"saved_repurposing_title_{selected_brand_id}",
+            placeholder="e.g. December social campaign"
+        )
 
+        if st.button(
+            "Save Draft",
+            key=f"save_repurposing_{selected_brand_id}"
+        ):
+
+            if not (source_text or "").strip():
+                st.warning("Paste your source text before saving.")
+
+            elif not draft_title.strip():
+                st.warning("Please give your draft a name.")
+
+            elif not output_formats:
+                st.warning("Please select at least one output format.")
+
+            else:
+                try:
+                    save_data = {
+                        "source_option": source_option,
+                        "source_text": source_text,
+                        "output_formats": output_formats
+                    }
+
+                    save_saved_content_draft(
+                        selected_brand_id,
+                        draft_title.strip(),
+                        "Content Repurposing Studio",
+                        save_data
+                    )
+
+                    st.success("Draft saved to My Drafts!")
+
+                except Exception as error:
+                    st.error(f"Could not save draft: {error}")
         st.button(
             "Clear Draft",
             on_click=clear_repurposing_draft
