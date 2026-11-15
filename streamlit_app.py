@@ -488,6 +488,19 @@ elif workflow == "Content Ideation":
         st.warning("Please select a brand first.")
 
     else:
+        draft_key = f"ideation_{selected_brand_id}"
+
+        def clear_ideation_draft():
+            delete_content_draft(
+                selected_brand_id,
+                "Content Ideation"
+            )
+
+            st.session_state[f"ideation_topic_{selected_brand_id}"] = ""
+            st.session_state[f"ideation_audience_{selected_brand_id}"] = ""
+            st.session_state[f"ideation_format_{selected_brand_id}"] = "Reel"
+            st.session_state[f"ideation_tone_{selected_brand_id}"] = "Engaging and relatable"
+
         saved_draft = get_content_draft(
             selected_brand_id,
             "Content Ideation"
@@ -508,9 +521,13 @@ elif workflow == "Content Ideation":
         format_type = st.selectbox(
             "Content format",
             ["Reel", "Carousel"],
-            index=["Reel", "Carousel"].index(
-                saved_draft.get("format_type", "Reel")
-            ) if saved_draft.get("format_type", "Reel") in ["Reel", "Carousel"] else 0,
+            index=(
+                ["Reel", "Carousel"].index(
+                    saved_draft.get("format_type", "Reel")
+                )
+                if saved_draft.get("format_type", "Reel") in ["Reel", "Carousel"]
+                else 0
+            ),
             key=f"ideation_format_{selected_brand_id}"
         )
 
@@ -530,7 +547,14 @@ elif workflow == "Content Ideation":
             "tone": tone
         }
 
-        if current_draft != saved_draft:
+        has_content = (
+            topic.strip()
+            or audience.strip()
+            or format_type != "Reel"
+            or tone != "Engaging and relatable"
+        )
+
+        if has_content and current_draft != saved_draft:
             save_content_draft(
                 selected_brand_id,
                 "Content Ideation",
@@ -539,12 +563,10 @@ elif workflow == "Content Ideation":
 
         st.caption("Your draft is saved automatically.")
 
-        if st.button("Clear Draft"):
-            delete_content_draft(
-                selected_brand_id,
-                "Content Ideation"
-            )
-            st.rerun()
+        st.button(
+            "Clear Draft",
+            on_click=clear_ideation_draft
+        )
 
         if st.button("Generate Content", type="primary"):
 
@@ -573,7 +595,6 @@ elif workflow == "Content Ideation":
                         st.error(
                             f"Generation failed: {error}"
                         )
-
 
 # EDITORIAL REVIEW
 elif workflow == "Editorial Review":
