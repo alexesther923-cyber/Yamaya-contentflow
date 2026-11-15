@@ -460,3 +460,63 @@ def delete_content_draft(brand_id, workflow):
         .eq("workflow", workflow)
         .execute()
     )
+def save_saved_content_draft(brand_id, title, workflow, draft_data):
+    supabase = get_supabase()
+
+    response = supabase.table("saved_content_drafts").insert({
+        "user_id": st.session_state["user_id"],
+        "brand_id": brand_id,
+        "title": title,
+        "workflow": workflow,
+        "draft_data": draft_data
+    }).execute()
+
+    return response.data
+
+
+def get_saved_content_drafts(brand_id=None):
+    supabase = get_supabase()
+
+    query = (
+        supabase.table("saved_content_drafts")
+        .select("*")
+        .eq("user_id", st.session_state["user_id"])
+        .order("updated_at", desc=True)
+    )
+
+    if brand_id:
+        query = query.eq("brand_id", brand_id)
+
+    response = query.execute()
+
+    return response.data or []
+
+
+def get_saved_content_draft(draft_id):
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("saved_content_drafts")
+        .select("*")
+        .eq("id", draft_id)
+        .eq("user_id", st.session_state["user_id"])
+        .limit(1)
+        .execute()
+    )
+
+    if response.data:
+        return response.data[0]
+
+    return {}
+
+
+def delete_saved_content_draft(draft_id):
+    supabase = get_supabase()
+
+    return (
+        supabase.table("saved_content_drafts")
+        .delete()
+        .eq("id", draft_id)
+        .eq("user_id", st.session_state["user_id"])
+        .execute()
+    )
