@@ -842,7 +842,6 @@ elif workflow == "Editorial Review":
             placeholder="e.g. November article review"
         )
 
-        if st.button(
 
         if st.button(
             "Save Draft",
