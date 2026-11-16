@@ -1009,13 +1009,19 @@ elif workflow == "Content Repurposing Studio":
             placeholder="e.g. December social campaign"
         )
 
+        
         if st.button(
             "Save Draft",
             key=f"save_repurposing_{selected_brand_id}"
         ):
 
-            if not (source_text or "").strip():
-                st.warning("Paste your source text before saving.")
+            has_text = bool((source_text or "").strip())
+            has_file = uploaded_file is not None
+
+            if not has_text and not has_file:
+                st.warning(
+                    "Paste source text or upload a file before saving."
+                )
 
             elif not draft_title.strip():
                 st.warning("Please give your draft a name.")
@@ -1029,7 +1035,10 @@ elif workflow == "Content Repurposing Studio":
                         "source_option": source_option,
                         "source_text": source_text,
                         "output_formats": output_formats,
-                        "generated_result": st.session_state.get("result", {})
+                        "generated_result": st.session_state.get("result", {}),
+                        "uploaded_file_name": (
+                            uploaded_file.name if uploaded_file else None
+                        )
                     }
 
                     save_saved_content_draft(
@@ -1043,6 +1052,7 @@ elif workflow == "Content Repurposing Studio":
 
                 except Exception as error:
                     st.error(f"Could not save draft: {error}")
+
         st.button(
             "Clear Draft",
             on_click=clear_repurposing_draft
