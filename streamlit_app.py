@@ -731,6 +731,7 @@ elif workflow == "Content Ideation":
             placeholder="e.g. December content ideas"
         )
 
+
         if st.button("Save Draft", key=f"save_ideation_{selected_brand_id}"):
 
             if not has_content:
@@ -747,7 +748,9 @@ elif workflow == "Content Ideation":
                         "Content Ideation",
                         {
                             **current_draft,
-                            "generated_result": st.session_state.get("result", {})
+                            "generated_result": st.session_state.get(
+                                "brand_results", {}
+                            ).get(selected_brand_id, {})
                         }
                     )
 
@@ -755,6 +758,7 @@ elif workflow == "Content Ideation":
 
                 except Exception as error:
                     st.error(f"Could not save draft: {error}")
+            
 
         st.button(
             "Clear Draft",
@@ -839,6 +843,8 @@ elif workflow == "Editorial Review":
         )
 
         if st.button(
+
+        if st.button(
             "Save Draft",
             key=f"save_editorial_{selected_brand_id}"
         ):
@@ -857,7 +863,9 @@ elif workflow == "Editorial Review":
                         "Editorial Review",
                         {
                             **current_draft,
-                            "generated_result": st.session_state.get("result", {})
+                            "generated_result": st.session_state.get(
+                                "brand_results", {}
+                            ).get(selected_brand_id, {})
                         }
                     )
 
@@ -1013,6 +1021,7 @@ elif workflow == "Content Repurposing Studio":
         )
 
         
+        
         if st.button(
             "Save Draft",
             key=f"save_repurposing_{selected_brand_id}"
@@ -1038,7 +1047,9 @@ elif workflow == "Content Repurposing Studio":
                         "source_option": source_option,
                         "source_text": source_text,
                         "output_formats": output_formats,
-                        "generated_result": st.session_state.get("result", {}),
+                        "generated_result": st.session_state.get(
+                            "brand_results", {}
+                        ).get(selected_brand_id, {}),
                         "uploaded_file_name": (
                             uploaded_file.name if uploaded_file else None
                         )
@@ -1055,6 +1066,7 @@ elif workflow == "Content Repurposing Studio":
 
                 except Exception as error:
                     st.error(f"Could not save draft: {error}")
+
 
         st.button(
             "Clear Draft",
