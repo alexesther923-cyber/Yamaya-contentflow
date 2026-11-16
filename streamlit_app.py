@@ -563,10 +563,12 @@ elif workflow == "My Drafts":
                                 {}
                             )
 
+                            st.session_state.setdefault("brand_results", {})
+
                             if saved_result:
-                                st.session_state["result"] = saved_result
+                                st.session_state["brand_results"][selected_brand_id] = saved_result
                             else:
-                                st.session_state.pop("result", None)
+                                st.session_state["brand_results"].pop(selected_brand_id, None)
                             draft_workflow = draft["workflow"]
 
                             save_content_draft(
@@ -778,10 +780,10 @@ elif workflow == "Content Ideation":
                             brand_name
                         )
 
-                        st.session_state["result"] = {
+                        st.session_state.setdefault("brand_results", {})
+                        st.session_state["brand_results"][selected_brand_id] = {
                             "Content Ideas": result
                         }
-
                     except Exception as error:
                         st.error(
                             f"Generation failed: {error}"
@@ -883,7 +885,8 @@ elif workflow == "Editorial Review":
                             brand_name
                         )
 
-                        st.session_state["result"] = {
+                        st.session_state.setdefault("brand_results", {})
+                        st.session_state["brand_results"][selected_brand_id] = {
                             "Editorial Review": result
                         }
 
@@ -1110,9 +1113,10 @@ elif workflow == "Content Repurposing Studio":
                             file_path=file_path
                         )
 
-                    st.session_state["result"] = (
-                        result["generated_content"]
-                    )
+                    st.session_state.setdefault("brand_results", {})
+                    st.session_state["brand_results"][selected_brand_id] = {
+                        "Content Repurposing Studio": result["generated_content"]
+                    }
 
                 except Exception as error:
 
@@ -1126,13 +1130,19 @@ elif workflow == "Content Repurposing Studio":
                         os.remove(file_path)
 
 
+
 # DISPLAY GENERATED CONTENT
-if "result" in st.session_state:
+
+current_result = st.session_state.get(
+    "brand_results", {}
+).get(selected_brand_id, {})
+
+if current_result:
 
     st.divider()
     st.subheader("Your Content")
 
-    for format_name, content in st.session_state["result"].items():
+    for format_name, content in current_result.items():
 
         with st.expander(
             format_name,
@@ -1145,7 +1155,7 @@ if "result" in st.session_state:
         try:
 
             saved_files = save_generated_content(
-                st.session_state["result"],
+                current_result,
                 brand_name
             )
 
