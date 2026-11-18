@@ -520,3 +520,89 @@ def delete_saved_content_draft(draft_id):
         .eq("user_id", st.session_state["user_id"])
         .execute()
     )
+def create_working_draft(brand_id, workflow, title="Untitled Draft"):
+    supabase = get_supabase()
+
+    response = supabase.table("working_drafts").insert({
+        "user_id": st.session_state["user_id"],
+        "brand_id": brand_id,
+        "workflow": workflow,
+        "title": title,
+        "draft_data": {},
+        "generated_result": {},
+        "status": "open"
+    }).execute()
+
+    return response.data
+
+
+def get_working_drafts(brand_id, workflow):
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("working_drafts")
+        .select("*")
+        .eq("user_id", st.session_state["user_id"])
+        .eq("brand_id", brand_id)
+        .eq("workflow", workflow)
+        .order("updated_at", desc=True)
+        .execute()
+    )
+
+    return response.data or []
+
+
+def update_working_draft(draft_id, draft_data, generated_result=None, title=None):
+    supabase = get_supabase()
+
+    update_data = {
+        "draft_data": draft_data,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+    if generated_result is not None:
+        update_data["generated_result"] = generated_result
+
+    if title is not None:
+        update_data["title"] = title
+
+    response = (
+        supabase.table("working_drafts")
+        .update(update_data)
+        .eq("id", draft_id)
+        .eq("user_id", st.session_state["user_id"])
+        .execute()
+    )
+
+    return response.data
+
+
+def set_working_draft_status(draft_id, status):
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("working_drafts")
+        .update({
+            "status": status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        })
+        .eq("id", draft_id)
+        .eq("user_id", st.session_state["user_id"])
+        .execute()
+    )
+
+    return response.data
+
+
+def delete_working_draft(draft_id):
+    supabase = get_supabase()
+
+    response = (
+        supabase.table("working_drafts")
+        .delete()
+        .eq("id", draft_id)
+        .eq("user_id", st.session_state["user_id"])
+        .execute()
+    )
+
+    return response.data
