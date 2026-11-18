@@ -668,43 +668,149 @@ elif workflow == "Content Ideation":
             st.session_state[f"ideation_format_{selected_brand_id}"] = "Reel"
             st.session_state[f"ideation_tone_{selected_brand_id}"] = "Engaging and relatable"
 
-        saved_draft = get_content_draft(
+        
+        working_drafts = get_working_drafts(
             selected_brand_id,
             "Content Ideation"
         )
 
+        if not working_drafts:
+            old_draft = get_content_draft(
+                selected_brand_id,
+                "Content Ideation"
+            ) or {}
+
+            old_result = st.session_state.get(
+                "brand_results", {}
+            ).get(selected_brand_id, {})
+
+            created = create_working_draft(
+                selected_brand_id,
+                "Content Ideation"
+            )
+
+            if created:
+                new_draft = created[0]
+                update_working_draft(
+                    new_draft["id"],
+                    old_draft,
+                    old_result
+                )
+                st.session_state[f"active_ideation_{selected_brand_id}"] = new_draft["id"]
+                st.rerun()
+
+        working_drafts = get_working_drafts(
+            selected_brand_id,
+            "Content Ideation"
+        )
+
+        active_key = f"active_ideation_{selected_brand_id}"
+
+        draft_options = {
+            draft["id"]: draft["title"]
+            for draft in working_drafts
+        }
+
+        if active_key not in st.session_state or st.session_state[active_key] not in draft_options:
+            st.session_state[active_key] = working_drafts[0]["id"]
+
+        selected_draft_id = st.selectbox(
+            "Working Draft",
+            options=list(draft_options.keys()),
+            format_func=lambda draft_id: draft_options[draft_id],
+            key=active_key
+        )
+
+        selected_working_draft = next(
+            draft for draft in working_drafts
+            if draft["id"] == selected_draft_id
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button(
+                "＋ New Draft",
+                key=f"new_working_ideation_{selected_brand_id}"
+            ):
+                created = create_working_draft(
+                    selected_brand_id,
+                    "Content Ideation"
+                )
+
+                if created:
+                    new_draft = created[0]
+                    st.session_state[active_key] = new_draft["id"]
+                    st.session_state[f"ideation_topic_{selected_brand_id}"] = ""
+                    st.session_state[f"ideation_audience_{selected_brand_id}"] = ""
+                    st.session_state[f"ideation_format_{selected_brand_id}"] = "Reel"
+                    st.session_state[f"ideation_tone_{selected_brand_id}"] = "Engaging and relatable"
+                    st.session_state.setdefault("brand_results", {})
+                    st.session_state["brand_results"].pop(selected_brand_id, None)
+                    st.rerun()
+
+        with col2:
+            if st.button(
+                "Delete Working Draft",
+                key=f"delete_working_ideation_{selected_brand_id}"
+            ):
+                delete_working_draft(selected_draft_id)
+                st.session_state.pop(active_key, None)
+                st.rerun()
+
+        saved_draft = selected_working_draft.get(
+            "draft_data", {}
+        ) or {}
+
+                topic_key = f"ideation_topic_{selected_draft_id}"
+        audience_key = f"ideation_audience_{selected_draft_id}"
+        format_key = f"ideation_format_{selected_draft_id}"
+        tone_key = f"ideation_tone_{selected_draft_id}"
+
+        if topic_key not in st.session_state:
+            st.session_state[topic_key] = saved_draft.get("topic", "")
+
+        if audience_key not in st.session_state:
+            st.session_state[audience_key] = saved_draft.get("audience", "")
+
+        if format_key not in st.session_state:
+            st.session_state[format_key] = saved_draft.get("format_type", "Reel")
+
+        if tone_key not in st.session_state:
+            st.session_state[tone_key] = saved_draft.get(
+                "tone", "Engaging and relatable"
+            )
+
+        saved_result = selected_working_draft.get(
+            "generated_result", {}
+        ) or {}
+
+        st.session_state.setdefault("brand_results", {})
+
+        if saved_result:
+            st.session_state["brand_results"][selected_brand_id] = saved_result
+        else:
+            st.session_state["brand_results"].pop(selected_brand_id, None)
+
         topic = st.text_input(
-            "Content topic",
-            value=saved_draft.get("topic", ""),
-            key=f"ideation_topic_{selected_brand_id}"
+           "Content topic",
+           key=topic_key
         )
 
         audience = st.text_input(
             "Target audience",
-            value=saved_draft.get("audience", ""),
-            key=f"ideation_audience_{selected_brand_id}"
+            key=audience_key
         )
 
         format_type = st.selectbox(
             "Content format",
             ["Reel", "Carousel"],
-            index=(
-                ["Reel", "Carousel"].index(
-                    saved_draft.get("format_type", "Reel")
-                )
-                if saved_draft.get("format_type", "Reel") in ["Reel", "Carousel"]
-                else 0
-            ),
-            key=f"ideation_format_{selected_brand_id}"
+            key=format_key
         )
 
         tone = st.text_input(
             "Preferred tone",
-            value=saved_draft.get(
-                "tone",
-                "Engaging and relatable"
-            ),
-            key=f"ideation_tone_{selected_brand_id}"
+            key=tone_key
         )
 
         current_draft = {
@@ -721,14 +827,17 @@ elif workflow == "Content Ideation":
             or tone != "Engaging and relatable"
         )
 
-        if has_content and current_draft != saved_draft:
-            save_content_draft(
-                selected_brand_id,
-                "Content Ideation",
-                current_draft
+        if current_draft != saved_draft:
+            update_working_draft(
+                selected_draft_id,
+                current_draft,
+                st.session_state.get("brand_results", {}).get(
+                    selected_brand_id, {}
+                )
             )
 
-        st.caption("Your draft is saved automatically.")
+        st.caption("Your working draft is saved automatically.")
+
 
         draft_title = st.text_input(
             "Name this draft",
