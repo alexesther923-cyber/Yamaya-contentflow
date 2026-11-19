@@ -741,10 +741,6 @@ elif workflow == "Content Ideation":
                 if created:
                     new_draft = created[0]
                     st.session_state[active_key] = new_draft["id"]
-                    st.session_state[f"ideation_topic_{selected_brand_id}"] = ""
-                    st.session_state[f"ideation_audience_{selected_brand_id}"] = ""
-                    st.session_state[f"ideation_format_{selected_brand_id}"] = "Reel"
-                    st.session_state[f"ideation_tone_{selected_brand_id}"] = "Engaging and relatable"
                     st.session_state.setdefault("brand_results", {})
                     st.session_state["brand_results"].pop(selected_brand_id, None)
                     st.rerun()
@@ -879,33 +875,45 @@ elif workflow == "Content Ideation":
             on_click=clear_ideation_draft
         )
 
-        if st.button("Generate Content", type="primary"):
+        
+if st.button("Generate Content", type="primary"):
 
-            if not topic or not audience:
-                st.warning(
-                    "Please enter a topic and target audience."
+    if not topic or not audience:
+        st.warning(
+            "Please enter a topic and target audience."
+        )
+
+    else:
+        with st.spinner("Generating content..."):
+
+            try:
+                result = generate_content_ideas(
+                    topic,
+                    audience,
+                    format_type,
+                    tone,
+                    brand_name
                 )
 
-            else:
-                with st.spinner("Generating content..."):
+                generated_result = {
+                    "Content Ideas": result
+                }
 
-                    try:
-                        result = generate_content_ideas(
-                            topic,
-                            audience,
-                            format_type,
-                            tone,
-                            brand_name
-                        )
+                update_working_draft(
+                    selected_draft_id,
+                    current_draft,
+                    generated_result
+                )
 
-                        st.session_state.setdefault("brand_results", {})
-                        st.session_state["brand_results"][selected_brand_id] = {
-                            "Content Ideas": result
-                        }
-                    except Exception as error:
-                        st.error(
-                            f"Generation failed: {error}"
-                        )
+                st.success("Content generated and saved to this working draft!")
+
+                st.rerun()
+
+            except Exception as error:
+                st.error(
+                    f"Generation failed: {error}"
+                )
+
 
 
 # EDITORIAL REVIEW
