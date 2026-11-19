@@ -758,7 +758,7 @@ elif workflow == "Content Ideation":
             "draft_data", {}
         ) or {}
 
-                topic_key = f"ideation_topic_{selected_draft_id}"
+        topic_key = f"ideation_topic_{selected_draft_id}"
         audience_key = f"ideation_audience_{selected_draft_id}"
         format_key = f"ideation_format_{selected_draft_id}"
         tone_key = f"ideation_tone_{selected_draft_id}"
