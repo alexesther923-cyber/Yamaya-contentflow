@@ -833,13 +833,13 @@ elif workflow == "Content Ideation":
             )
 
         st.caption("Your working draft is saved automatically.")
-
-
+        
         draft_title = st.text_input(
             "Name this draft",
-            key=f"saved_ideation_title_{selected_brand_id}",
+            key=f"saved_ideation_title_{selected_draft_id}",
             placeholder="e.g. December content ideas"
         )
+
 
 
         if st.button("Save Draft", key=f"save_ideation_{selected_brand_id}"):
@@ -876,43 +876,45 @@ elif workflow == "Content Ideation":
         )
 
         
-if st.button("Generate Content", type="primary"):
+        if st.button("Generate Content", type="primary"):
 
-    if not topic or not audience:
-        st.warning(
-            "Please enter a topic and target audience."
-        )
-
-    else:
-        with st.spinner("Generating content..."):
-
-            try:
-                result = generate_content_ideas(
-                    topic,
-                    audience,
-                    format_type,
-                    tone,
-                    brand_name
+            if not topic or not audience:
+                st.warning(
+                    "Please enter a topic and target audience."
                 )
 
-                generated_result = {
-                    "Content Ideas": result
-                }
+            else:
+                with st.spinner("Generating content..."):
 
-                update_working_draft(
-                    selected_draft_id,
-                    current_draft,
-                    generated_result
-                )
+                    try:
+                        result = generate_content_ideas(
+                            topic,
+                            audience,
+                            format_type,
+                            tone,
+                            brand_name
+                        )
 
-                st.success("Content generated and saved to this working draft!")
+                        generated_result = {
+                            "Content Ideas": result
+                        }
 
-                st.rerun()
+                        update_working_draft(
+                            selected_draft_id,
+                            current_draft,
+                            generated_result
+                        )
 
-            except Exception as error:
-                st.error(
-                    f"Generation failed: {error}"
-                )
+                        st.success(
+                            "Content generated and saved to this working draft!"
+                        )
+
+                        st.rerun()
+
+                    except Exception as error:
+                        st.error(
+                            f"Generation failed: {error}"
+                        )
 
 
 
