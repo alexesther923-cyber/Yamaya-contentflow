@@ -840,7 +840,7 @@ elif workflow == "Content Ideation":
             or tone != "Engaging and relatable"
         )
 
-                if current_draft != saved_draft:
+        if current_draft != saved_draft:
             update_working_draft(
                 selected_draft_id,
                 current_draft,
@@ -850,13 +850,12 @@ elif workflow == "Content Ideation":
             )
 
         st.caption("Your working draft is saved automatically.")
-        
+
         draft_title = st.text_input(
             "Name this draft",
             key=f"saved_ideation_title_{selected_draft_id}",
             placeholder="e.g. December content ideas"
         )
-
 
 
                 if st.button(
