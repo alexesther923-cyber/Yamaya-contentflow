@@ -657,7 +657,7 @@ elif workflow == "Content Ideation":
     else:
         draft_key = f"ideation_{selected_brand_id}"
 
-                def clear_ideation_draft():
+        def clear_ideation_draft():
             update_working_draft(
                 selected_draft_id,
                 {
@@ -688,7 +688,6 @@ elif workflow == "Content Ideation":
             st.session_state["working_draft_results"].pop(
                 selected_draft_id, None
             )
-
         
         working_drafts = get_working_drafts(
             selected_brand_id,
