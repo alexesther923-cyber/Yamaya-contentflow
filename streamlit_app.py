@@ -689,11 +689,13 @@ elif workflow == "Content Ideation":
                 selected_draft_id, None
             )
         
+        
         working_drafts = get_working_drafts(
             selected_brand_id,
             "Content Ideation"
         )
 
+        # MIGRATE THE LEGACY DRAFT ONLY ONCE
         if not working_drafts:
             old_draft = get_content_draft(
                 selected_brand_id,
@@ -711,12 +713,23 @@ elif workflow == "Content Ideation":
 
             if created:
                 new_draft = created[0]
+
                 update_working_draft(
                     new_draft["id"],
                     old_draft,
                     old_result
                 )
-                st.session_state[f"active_ideation_{selected_brand_id}"] = new_draft["id"]
+
+                # Remove the legacy copy after migration.
+                delete_content_draft(
+                    selected_brand_id,
+                    "Content Ideation"
+                )
+
+                st.session_state[
+                    f"active_ideation_{selected_brand_id}"
+                ] = new_draft["id"]
+
                 st.rerun()
 
         working_drafts = get_working_drafts(
@@ -778,12 +791,12 @@ elif workflow == "Content Ideation":
                 key=f"delete_working_ideation_{selected_brand_id}"
             ):
                 delete_working_draft(selected_draft_id)
-                st.session_state.pop(active_key, None)
                 st.rerun()
 
         saved_draft = selected_working_draft.get(
             "draft_data", {}
         ) or {}
+
         topic_key = f"ideation_topic_{selected_draft_id}"
         audience_key = f"ideation_audience_{selected_draft_id}"
         format_key = f"ideation_format_{selected_draft_id}"
