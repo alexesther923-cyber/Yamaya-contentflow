@@ -725,26 +725,23 @@ elif workflow == "Content Ideation":
         )
 
         active_key = f"active_ideation_{selected_brand_id}"
+        pending_key = f"pending_ideation_{selected_brand_id}"
 
         draft_options = {
             draft["id"]: draft["title"]
             for draft in working_drafts
         }
 
-        if active_key not in st.session_state or st.session_state[active_key] not in draft_options:
+        if pending_key in st.session_state:
+            st.session_state[active_key] = st.session_state.pop(
+                pending_key
+            )
+
+        if (
+            active_key not in st.session_state
+            or st.session_state[active_key] not in draft_options
+        ):
             st.session_state[active_key] = working_drafts[0]["id"]
-
-        selected_draft_id = st.selectbox(
-            "Working Draft",
-            options=list(draft_options.keys()),
-            format_func=lambda draft_id: draft_options[draft_id],
-            key=active_key
-        )
-
-        selected_working_draft = next(
-            draft for draft in working_drafts
-            if draft["id"] == selected_draft_id
-        )
 
         col1, col2 = st.columns(2)
 
@@ -760,8 +757,20 @@ elif workflow == "Content Ideation":
 
                 if created:
                     new_draft = created[0]
-                    st.session_state[active_key] = new_draft["id"]
+                    st.session_state[pending_key] = new_draft["id"]
                     st.rerun()
+
+        selected_draft_id = st.selectbox(
+            "Working Draft",
+            options=list(draft_options.keys()),
+            format_func=lambda draft_id: draft_options[draft_id],
+            key=active_key
+        )
+
+        selected_working_draft = next(
+            draft for draft in working_drafts
+            if draft["id"] == selected_draft_id
+        )
 
         with col2:
             if st.button(
@@ -775,7 +784,6 @@ elif workflow == "Content Ideation":
         saved_draft = selected_working_draft.get(
             "draft_data", {}
         ) or {}
-
         topic_key = f"ideation_topic_{selected_draft_id}"
         audience_key = f"ideation_audience_{selected_draft_id}"
         format_key = f"ideation_format_{selected_draft_id}"
