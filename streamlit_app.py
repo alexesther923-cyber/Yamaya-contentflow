@@ -857,8 +857,7 @@ elif workflow == "Content Ideation":
             placeholder="e.g. December content ideas"
         )
 
-
-                if st.button(
+        if st.button(
             "Save Draft",
             key=f"save_ideation_{selected_draft_id}"
         ):
@@ -887,7 +886,6 @@ elif workflow == "Content Ideation":
 
                 except Exception as error:
                     st.error(f"Could not save draft: {error}")
-            
 
         st.button(
             "Clear Draft",
