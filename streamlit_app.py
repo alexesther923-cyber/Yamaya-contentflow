@@ -657,16 +657,37 @@ elif workflow == "Content Ideation":
     else:
         draft_key = f"ideation_{selected_brand_id}"
 
-        def clear_ideation_draft():
-            delete_content_draft(
-                selected_brand_id,
-                "Content Ideation"
+                def clear_ideation_draft():
+            update_working_draft(
+                selected_draft_id,
+                {
+                    "topic": "",
+                    "audience": "",
+                    "format_type": "Reel",
+                    "tone": "Engaging and relatable"
+                },
+                {}
             )
 
-            st.session_state[f"ideation_topic_{selected_brand_id}"] = ""
-            st.session_state[f"ideation_audience_{selected_brand_id}"] = ""
-            st.session_state[f"ideation_format_{selected_brand_id}"] = "Reel"
-            st.session_state[f"ideation_tone_{selected_brand_id}"] = "Engaging and relatable"
+            st.session_state.pop(
+                f"ideation_topic_{selected_draft_id}", None
+            )
+            st.session_state.pop(
+                f"ideation_audience_{selected_draft_id}", None
+            )
+            st.session_state.pop(
+                f"ideation_format_{selected_draft_id}", None
+            )
+            st.session_state.pop(
+                f"ideation_tone_{selected_draft_id}", None
+            )
+
+            st.session_state.setdefault(
+                "working_draft_results", {}
+            )
+            st.session_state["working_draft_results"].pop(
+                selected_draft_id, None
+            )
 
         
         working_drafts = get_working_drafts(
@@ -741,8 +762,6 @@ elif workflow == "Content Ideation":
                 if created:
                     new_draft = created[0]
                     st.session_state[active_key] = new_draft["id"]
-                    st.session_state.setdefault("brand_results", {})
-                    st.session_state["brand_results"].pop(selected_brand_id, None)
                     st.rerun()
 
         with col2:
@@ -777,16 +796,15 @@ elif workflow == "Content Ideation":
                 "tone", "Engaging and relatable"
             )
 
+        
         saved_result = selected_working_draft.get(
             "generated_result", {}
         ) or {}
 
-        st.session_state.setdefault("brand_results", {})
+        st.session_state.setdefault("working_draft_results", {})
 
-        if saved_result:
-            st.session_state["brand_results"][selected_brand_id] = saved_result
-        else:
-            st.session_state["brand_results"].pop(selected_brand_id, None)
+        st.session_state["working_draft_results"][selected_draft_id] = saved_result
+
 
         topic = st.text_input(
            "Content topic",
@@ -823,13 +841,13 @@ elif workflow == "Content Ideation":
             or tone != "Engaging and relatable"
         )
 
-        if current_draft != saved_draft:
+                if current_draft != saved_draft:
             update_working_draft(
                 selected_draft_id,
                 current_draft,
-                st.session_state.get("brand_results", {}).get(
-                    selected_brand_id, {}
-                )
+                st.session_state.get(
+                    "working_draft_results", {}
+                ).get(selected_draft_id, {})
             )
 
         st.caption("Your working draft is saved automatically.")
@@ -842,7 +860,10 @@ elif workflow == "Content Ideation":
 
 
 
-        if st.button("Save Draft", key=f"save_ideation_{selected_brand_id}"):
+                if st.button(
+            "Save Draft",
+            key=f"save_ideation_{selected_draft_id}"
+        ):
 
             if not has_content:
                 st.warning("Enter some content before saving.")
@@ -859,8 +880,8 @@ elif workflow == "Content Ideation":
                         {
                             **current_draft,
                             "generated_result": st.session_state.get(
-                                "brand_results", {}
-                            ).get(selected_brand_id, {})
+                                "working_draft_results", {}
+                            ).get(selected_draft_id, {})
                         }
                     )
 
@@ -1268,9 +1289,14 @@ elif workflow == "Content Repurposing Studio":
 
 # DISPLAY GENERATED CONTENT
 
-current_result = st.session_state.get(
-    "brand_results", {}
-).get(selected_brand_id, {})
+if workflow == "Content Ideation":
+    current_result = st.session_state.get(
+        "working_draft_results", {}
+    ).get(selected_draft_id, {})
+else:
+    current_result = st.session_state.get(
+        "brand_results", {}
+    ).get(selected_brand_id, {})
 
 if current_result:
 
