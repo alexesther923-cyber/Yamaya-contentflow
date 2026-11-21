@@ -1547,10 +1547,21 @@ if (
     current_result = st.session_state.get(
         "working_draft_results", {}
     ).get(selected_draft_id, {})
+
+elif (
+    workflow == "Content Repurposing Studio"
+    and selected_brand_id
+    and "selected_repurpose_draft_id" in locals()
+):
+    current_result = st.session_state.get(
+        "working_draft_results", {}
+    ).get(selected_repurpose_draft_id, {})
+
 elif selected_brand_id:
     current_result = st.session_state.get(
         "brand_results", {}
     ).get(selected_brand_id, {})
+
 else:
     current_result = {}
 
