@@ -1138,28 +1138,192 @@ elif workflow == "Content Repurposing Studio":
 
     else:
 
-        def clear_repurposing_draft():
-            delete_content_draft(
-                selected_brand_id,
-                "Content Repurposing Studio"
-            )
-
-            st.session_state[
-                f"repurpose_source_{selected_brand_id}"
-            ] = "Paste text"
-
-            st.session_state[
-                f"repurpose_text_{selected_brand_id}"
-            ] = ""
-
-            st.session_state[
-                f"repurpose_formats_{selected_brand_id}"
-            ] = []
-
-        saved_draft = get_content_draft(
+        working_drafts = get_working_drafts(
             selected_brand_id,
             "Content Repurposing Studio"
         )
+
+        # CREATE THE FIRST WORKING DRAFT
+        if not working_drafts:
+            created = create_working_draft(
+                selected_brand_id,
+                "Content Repurposing Studio",
+                "Draft 1"
+            )
+
+            if created:
+                st.session_state[
+                    f"active_repurposing_{selected_brand_id}"
+                ] = created[0]["id"]
+                st.rerun()
+            else:
+                st.error("Could not create a working draft.")
+                st.stop()
+
+        working_drafts = get_working_drafts(
+            selected_brand_id,
+            "Content Repurposing Studio"
+        )
+
+        if not working_drafts:
+            st.error("No working drafts could be loaded.")
+            st.stop()
+
+        active_key = f"active_repurposing_{selected_brand_id}"
+        pending_key = f"pending_repurposing_{selected_brand_id}"
+
+        draft_options = {
+            draft["id"]: (
+                f"{draft['title']} · {draft['id'][:6]}"
+            )
+            for draft in working_drafts
+        }
+
+        if pending_key in st.session_state:
+            st.session_state[active_key] = st.session_state.pop(
+                pending_key
+            )
+
+        if (
+            active_key not in st.session_state
+            or st.session_state[active_key] not in draft_options
+        ):
+            st.session_state[active_key] = working_drafts[0]["id"]
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button(
+                "＋ New Draft",
+                key=f"new_repurposing_{selected_brand_id}"
+            ):
+                existing_titles = {
+                    draft["title"] for draft in working_drafts
+                }
+
+                draft_number = 1
+
+                while f"Draft {draft_number}" in existing_titles:
+                    draft_number += 1
+
+                created = create_working_draft(
+                    selected_brand_id,
+                    "Content Repurposing Studio",
+                    f"Draft {draft_number}"
+                )
+
+                if created:
+                    st.session_state[pending_key] = created[0]["id"]
+                    st.rerun()
+                else:
+                    st.error("Could not create a new working draft.")
+
+        selected_repurpose_draft_id = st.selectbox(
+            "Working Draft",
+            options=list(draft_options.keys()),
+            format_func=lambda draft_id: draft_options[draft_id],
+            key=active_key
+        )
+
+        selected_working_draft = next(
+            draft for draft in working_drafts
+            if draft["id"] == selected_repurpose_draft_id
+        )
+
+        saved_draft = (
+            selected_working_draft.get("draft_data", {}) or {}
+        )
+
+        saved_result = (
+            selected_working_draft.get("generated_result", {}) or {}
+        )
+
+        st.session_state.setdefault("working_draft_results", {})
+        st.session_state["working_draft_results"][
+            selected_repurpose_draft_id
+        ] = saved_result
+
+        with col2:
+            if st.button(
+                "Delete Working Draft",
+                key=f"delete_repurposing_{selected_brand_id}"
+            ):
+                delete_working_draft(selected_repurpose_draft_id)
+
+                for key in [
+                    f"repurpose_source_{selected_repurpose_draft_id}",
+                    f"repurpose_text_{selected_repurpose_draft_id}",
+                    f"repurpose_formats_{selected_repurpose_draft_id}",
+                    f"repurpose_title_{selected_repurpose_draft_id}",
+                    f"repurpose_file_{selected_repurpose_draft_id}"
+                ]:
+                    st.session_state.pop(key, None)
+
+                st.session_state["working_draft_results"].pop(
+                    selected_repurpose_draft_id, None
+                )
+
+                st.rerun()
+
+        # WORKING DRAFT NAME
+        title_key = f"repurpose_title_{selected_repurpose_draft_id}"
+
+        if title_key not in st.session_state:
+            st.session_state[title_key] = selected_working_draft.get(
+                "title", "Untitled Draft"
+            )
+
+        working_title = st.text_input(
+            "Working draft name",
+            key=title_key,
+            placeholder="Give this working draft a name"
+        )
+
+        if st.button(
+            "Rename Working Draft",
+            key=f"rename_repurposing_{selected_repurpose_draft_id}"
+        ):
+            if not working_title.strip():
+                st.warning("Please enter a name for this working draft.")
+            else:
+                update_working_draft(
+                    selected_repurpose_draft_id,
+                    saved_draft,
+                    saved_result,
+                    title=working_title.strip()
+                )
+
+                st.success("Working draft renamed.")
+                st.rerun()
+
+        # LOAD THIS WORKING DRAFT'S INPUTS
+        source_key = f"repurpose_source_{selected_repurpose_draft_id}"
+        text_key = f"repurpose_text_{selected_repurpose_draft_id}"
+        formats_key = f"repurpose_formats_{selected_repurpose_draft_id}"
+
+        if source_key not in st.session_state:
+            st.session_state[source_key] = saved_draft.get(
+                "source_option", "Paste text"
+            )
+
+        if text_key not in st.session_state:
+            st.session_state[text_key] = saved_draft.get(
+                "source_text", ""
+            )
+
+        output_options = [
+            "Carousel",
+            "Reel",
+            "Blog Article",
+            "Newsletter",
+            "Social Media Caption"
+        ]
+
+        if formats_key not in st.session_state:
+            st.session_state[formats_key] = [
+                item for item in saved_draft.get("output_formats", [])
+                if item in output_options
+            ]
 
         source_option = st.radio(
             "Choose your source",
@@ -1167,30 +1331,24 @@ elif workflow == "Content Repurposing Studio":
                 "Paste text",
                 "Upload a document or image"
             ],
-            index=(
-                0 if saved_draft.get("source_option", "Paste text") == "Paste text"
-                else 1
-            ),
-            key=f"repurpose_source_{selected_brand_id}"
+            key=source_key
         )
 
-        source_text = None
-        file_path = None
+        source_text = ""
         uploaded_file = None
+        file_path = None
 
         if source_option == "Paste text":
-
             source_text = st.text_area(
                 "Paste your source material",
-                value=saved_draft.get("source_text", ""),
                 height=250,
-                key=f"repurpose_text_{selected_brand_id}"
+                key=text_key
             )
 
         else:
-
             st.info(
-                "Uploaded files must be selected again after refreshing."
+                "Uploaded files are currently available only during "
+                "this session. Persistent file storage will be added next."
             )
 
             uploaded_file = st.file_uploader(
@@ -1203,64 +1361,54 @@ elif workflow == "Content Repurposing Studio":
                     "png",
                     "webp"
                 ],
-                key=f"repurpose_file_{selected_brand_id}"
+                key=f"repurpose_file_{selected_repurpose_draft_id}"
             )
-
-        output_options = [
-            "Carousel",
-            "Reel",
-            "Blog Article",
-            "Newsletter",
-            "Social Media Caption"
-        ]
 
         output_formats = st.multiselect(
             "Choose output formats",
             output_options,
-            default=[
-                item for item in saved_draft.get("output_formats", [])
-                if item in output_options
-            ],
-            key=f"repurpose_formats_{selected_brand_id}"
+            key=formats_key
         )
 
         current_draft = {
             "source_option": source_option,
-            "source_text": source_text or "",
-            "output_formats": output_formats
+            "source_text": source_text,
+            "output_formats": output_formats,
+            "uploaded_file_name": (
+                uploaded_file.name if uploaded_file else
+                saved_draft.get("uploaded_file_name")
+            )
         }
 
+        # AUTOMATICALLY SAVE THIS WORKING DRAFT
         if current_draft != saved_draft:
-            save_content_draft(
-                selected_brand_id,
-                "Content Repurposing Studio",
-                current_draft
+            update_working_draft(
+                selected_repurpose_draft_id,
+                current_draft,
+                saved_result
             )
 
-        st.caption("Your text and output selections save automatically.")
+        st.caption("Your working draft saves automatically.")
+
+        # SAVE A SEPARATE COPY TO MY DRAFTS
         draft_title = st.text_input(
-            "Name this draft",
-            key=f"saved_repurposing_title_{selected_brand_id}",
+            "Name this draft for My Drafts",
+            key=f"saved_repurposing_title_{selected_repurpose_draft_id}",
             placeholder="e.g. December social campaign"
         )
 
-        
-        
         if st.button(
             "Save Draft",
-            key=f"save_repurposing_{selected_brand_id}"
+            key=f"save_repurposing_{selected_repurpose_draft_id}"
         ):
-
-            has_text = bool((source_text or "").strip())
+            has_text = bool(source_text.strip())
             has_file = uploaded_file is not None
 
             if not has_text and not has_file:
-                st.warning(
-                    "Paste source text or upload a file before saving."
-                )
+                st.warning("Paste source text or upload a file.")
 
             elif not draft_title.strip():
-                st.warning("Please give your draft a name.")
+                st.warning("Please give your saved copy a name.")
 
             elif not output_formats:
                 st.warning("Please select at least one output format.")
@@ -1268,15 +1416,8 @@ elif workflow == "Content Repurposing Studio":
             else:
                 try:
                     save_data = {
-                        "source_option": source_option,
-                        "source_text": source_text,
-                        "output_formats": output_formats,
-                        "generated_result": st.session_state.get(
-                            "brand_results", {}
-                        ).get(selected_brand_id, {}),
-                        "uploaded_file_name": (
-                            uploaded_file.name if uploaded_file else None
-                        )
+                        **current_draft,
+                        "generated_result": saved_result
                     }
 
                     save_saved_content_draft(
@@ -1291,21 +1432,46 @@ elif workflow == "Content Repurposing Studio":
                 except Exception as error:
                     st.error(f"Could not save draft: {error}")
 
-
-        st.button(
+        # CLEAR THIS WORKING DRAFT
+        if st.button(
             "Clear Draft",
-            on_click=clear_repurposing_draft
-        )
+            key=f"clear_repurposing_{selected_repurpose_draft_id}"
+        ):
+            empty_draft = {
+                "source_option": "Paste text",
+                "source_text": "",
+                "output_formats": [],
+                "uploaded_file_name": None
+            }
 
-        if st.button("Repurpose Content", type="primary"):
+            update_working_draft(
+                selected_repurpose_draft_id,
+                empty_draft,
+                {}
+            )
 
-            if (
-                source_option == "Paste text"
-                and not source_text.strip()
-            ):
-                st.warning(
-                    "Please paste your source material."
-                )
+            for key in [
+                source_key,
+                text_key,
+                formats_key,
+                f"repurpose_file_{selected_repurpose_draft_id}"
+            ]:
+                st.session_state.pop(key, None)
+
+            st.session_state["working_draft_results"].pop(
+                selected_repurpose_draft_id, None
+            )
+
+            st.rerun()
+
+        # GENERATE REPURPOSED CONTENT
+        if st.button(
+            "Repurpose Content",
+            type="primary",
+            key=f"run_repurposing_{selected_repurpose_draft_id}"
+        ):
+            if source_option == "Paste text" and not source_text.strip():
+                st.warning("Please paste your source material.")
 
             elif (
                 source_option == "Upload a document or image"
@@ -1314,15 +1480,11 @@ elif workflow == "Content Repurposing Studio":
                 st.warning("Please upload a file.")
 
             elif not output_formats:
-                st.warning(
-                    "Please select at least one output format."
-                )
+                st.warning("Please select at least one output format.")
 
             else:
                 try:
-
                     if uploaded_file:
-
                         suffix = os.path.splitext(
                             uploaded_file.name
                         )[1]
@@ -1331,17 +1493,12 @@ elif workflow == "Content Repurposing Studio":
                             delete=False,
                             suffix=suffix
                         ) as temp_file:
-
-                            temp_file.write(
-                                uploaded_file.getvalue()
-                            )
-
+                            temp_file.write(uploaded_file.getvalue())
                             file_path = temp_file.name
 
                     with st.spinner(
                         "Processing and repurposing content..."
                     ):
-
                         result = run_contentflow_pipeline(
                             brand_name=brand_name,
                             output_formats=output_formats,
@@ -1349,19 +1506,32 @@ elif workflow == "Content Repurposing Studio":
                             file_path=file_path
                         )
 
-                    st.session_state.setdefault("brand_results", {})
-                    st.session_state["brand_results"][selected_brand_id] = {
-                        "Content Repurposing Studio": result["generated_content"]
+                    generated_result = {
+                        "Content Repurposing Studio": (
+                            result["generated_content"]
+                        )
                     }
 
-                except Exception as error:
-
-                    st.error(
-                        f"Repurposing failed: {error}"
+                    update_working_draft(
+                        selected_repurpose_draft_id,
+                        current_draft,
+                        generated_result
                     )
 
-                finally:
+                    st.session_state["working_draft_results"][
+                        selected_repurpose_draft_id
+                    ] = generated_result
 
+                    st.success(
+                        "Content generated and saved to this working draft!"
+                    )
+
+                    st.rerun()
+
+                except Exception as error:
+                    st.error(f"Repurposing failed: {error}")
+
+                finally:
                     if file_path and os.path.exists(file_path):
                         os.remove(file_path)
 
