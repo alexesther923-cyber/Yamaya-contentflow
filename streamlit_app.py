@@ -646,6 +646,7 @@ elif workflow == "My Drafts":
                             st.success("Draft deleted.")
                             st.rerun()
 
+
 # CONTENT IDEATION
 elif workflow == "Content Ideation":
 
@@ -655,8 +656,6 @@ elif workflow == "Content Ideation":
         st.warning("Please select a brand first.")
 
     else:
-        draft_key = f"ideation_{selected_brand_id}"
-
         def clear_ideation_draft():
             update_working_draft(
                 selected_draft_id,
@@ -669,18 +668,13 @@ elif workflow == "Content Ideation":
                 {}
             )
 
-            st.session_state.pop(
-                f"ideation_topic_{selected_draft_id}", None
-            )
-            st.session_state.pop(
-                f"ideation_audience_{selected_draft_id}", None
-            )
-            st.session_state.pop(
-                f"ideation_format_{selected_draft_id}", None
-            )
-            st.session_state.pop(
-                f"ideation_tone_{selected_draft_id}", None
-            )
+            for key in [
+                f"ideation_topic_{selected_draft_id}",
+                f"ideation_audience_{selected_draft_id}",
+                f"ideation_format_{selected_draft_id}",
+                f"ideation_tone_{selected_draft_id}"
+            ]:
+                st.session_state.pop(key, None)
 
             st.session_state.setdefault(
                 "working_draft_results", {}
@@ -688,8 +682,7 @@ elif workflow == "Content Ideation":
             st.session_state["working_draft_results"].pop(
                 selected_draft_id, None
             )
-        
-        
+
         working_drafts = get_working_drafts(
             selected_brand_id,
             "Content Ideation"
@@ -708,7 +701,8 @@ elif workflow == "Content Ideation":
 
             created = create_working_draft(
                 selected_brand_id,
-                "Content Ideation"
+                "Content Ideation",
+                "Draft 1"
             )
 
             if created:
@@ -720,7 +714,6 @@ elif workflow == "Content Ideation":
                     old_result
                 )
 
-                # Remove the legacy copy after migration.
                 delete_content_draft(
                     selected_brand_id,
                     "Content Ideation"
@@ -732,16 +725,26 @@ elif workflow == "Content Ideation":
 
                 st.rerun()
 
+            else:
+                st.error("Could not create a working draft.")
+                st.stop()
+
         working_drafts = get_working_drafts(
             selected_brand_id,
             "Content Ideation"
         )
 
+        if not working_drafts:
+            st.error("No working drafts could be loaded.")
+            st.stop()
+
         active_key = f"active_ideation_{selected_brand_id}"
         pending_key = f"pending_ideation_{selected_brand_id}"
 
         draft_options = {
-            draft["id"]: draft["title"]
+            draft["id"]: (
+                f"{draft['title']} · {draft['id'][:6]}"
+            )
             for draft in working_drafts
         }
 
@@ -763,15 +766,27 @@ elif workflow == "Content Ideation":
                 "＋ New Draft",
                 key=f"new_working_ideation_{selected_brand_id}"
             ):
+                existing_titles = {
+                    draft["title"] for draft in working_drafts
+                }
+
+                draft_number = 1
+
+                while f"Draft {draft_number}" in existing_titles:
+                    draft_number += 1
+
                 created = create_working_draft(
                     selected_brand_id,
-                    "Content Ideation"
+                    "Content Ideation",
+                    f"Draft {draft_number}"
                 )
 
                 if created:
                     new_draft = created[0]
                     st.session_state[pending_key] = new_draft["id"]
                     st.rerun()
+                else:
+                    st.error("Could not create a new working draft.")
 
         selected_draft_id = st.selectbox(
             "Working Draft",
@@ -785,50 +800,104 @@ elif workflow == "Content Ideation":
             if draft["id"] == selected_draft_id
         )
 
+        saved_draft = selected_working_draft.get(
+            "draft_data", {}
+        ) or {}
+
+        saved_result = selected_working_draft.get(
+            "generated_result", {}
+        ) or {}
+
+        st.session_state.setdefault(
+            "working_draft_results", {}
+        )
+
+        st.session_state["working_draft_results"][
+            selected_draft_id
+        ] = saved_result
+
         with col2:
             if st.button(
                 "Delete Working Draft",
                 key=f"delete_working_ideation_{selected_brand_id}"
             ):
                 delete_working_draft(selected_draft_id)
+
+                for key in [
+                    f"ideation_topic_{selected_draft_id}",
+                    f"ideation_audience_{selected_draft_id}",
+                    f"ideation_format_{selected_draft_id}",
+                    f"ideation_tone_{selected_draft_id}",
+                    f"working_title_{selected_draft_id}"
+                ]:
+                    st.session_state.pop(key, None)
+
+                st.session_state["working_draft_results"].pop(
+                    selected_draft_id, None
+                )
+
                 st.rerun()
 
-        saved_draft = selected_working_draft.get(
-            "draft_data", {}
-        ) or {}
+        # WORKING DRAFT NAME
+        title_key = f"working_title_{selected_draft_id}"
 
+        if title_key not in st.session_state:
+            st.session_state[title_key] = selected_working_draft.get(
+                "title", "Untitled Draft"
+            )
+
+        working_title = st.text_input(
+            "Working draft name",
+            key=title_key,
+            placeholder="Give this working draft a name"
+        )
+
+        if st.button(
+            "Rename Working Draft",
+            key=f"rename_working_{selected_draft_id}"
+        ):
+            if not working_title.strip():
+                st.warning("Please enter a name for this working draft.")
+            else:
+                update_working_draft(
+                    selected_draft_id,
+                    saved_draft,
+                    saved_result,
+                    title=working_title.strip()
+                )
+
+                st.success("Working draft renamed.")
+                st.rerun()
+
+        # LOAD THIS WORKING DRAFT'S INPUTS
         topic_key = f"ideation_topic_{selected_draft_id}"
         audience_key = f"ideation_audience_{selected_draft_id}"
         format_key = f"ideation_format_{selected_draft_id}"
         tone_key = f"ideation_tone_{selected_draft_id}"
 
         if topic_key not in st.session_state:
-            st.session_state[topic_key] = saved_draft.get("topic", "")
+            st.session_state[topic_key] = saved_draft.get(
+                "topic", ""
+            )
 
         if audience_key not in st.session_state:
-            st.session_state[audience_key] = saved_draft.get("audience", "")
+            st.session_state[audience_key] = saved_draft.get(
+                "audience", ""
+            )
 
         if format_key not in st.session_state:
-            st.session_state[format_key] = saved_draft.get("format_type", "Reel")
+            st.session_state[format_key] = saved_draft.get(
+                "format_type", "Reel"
+            )
 
         if tone_key not in st.session_state:
             st.session_state[tone_key] = saved_draft.get(
                 "tone", "Engaging and relatable"
             )
 
-        
-        saved_result = selected_working_draft.get(
-            "generated_result", {}
-        ) or {}
-
-        st.session_state.setdefault("working_draft_results", {})
-
-        st.session_state["working_draft_results"][selected_draft_id] = saved_result
-
-
         topic = st.text_input(
-           "Content topic",
-           key=topic_key
+            "Content topic",
+            key=topic_key
         )
 
         audience = st.text_input(
@@ -865,15 +934,16 @@ elif workflow == "Content Ideation":
             update_working_draft(
                 selected_draft_id,
                 current_draft,
-                st.session_state.get(
-                    "working_draft_results", {}
-                ).get(selected_draft_id, {})
+                saved_result
             )
 
-        st.caption("Your working draft is saved automatically.")
+        st.caption(
+            "Your working draft is saved automatically."
+        )
 
+        # SAVE A SEPARATE COPY TO MY DRAFTS
         draft_title = st.text_input(
-            "Name this draft",
+            "Name this draft for My Drafts",
             key=f"saved_ideation_title_{selected_draft_id}",
             placeholder="e.g. December content ideas"
         )
@@ -882,12 +952,11 @@ elif workflow == "Content Ideation":
             "Save Draft",
             key=f"save_ideation_{selected_draft_id}"
         ):
-
             if not has_content:
                 st.warning("Enter some content before saving.")
 
             elif not draft_title.strip():
-                st.warning("Please give your draft a name.")
+                st.warning("Please give your saved copy a name.")
 
             else:
                 try:
@@ -897,9 +966,7 @@ elif workflow == "Content Ideation":
                         "Content Ideation",
                         {
                             **current_draft,
-                            "generated_result": st.session_state.get(
-                                "working_draft_results", {}
-                            ).get(selected_draft_id, {})
+                            "generated_result": saved_result
                         }
                     )
 
@@ -913,17 +980,15 @@ elif workflow == "Content Ideation":
             on_click=clear_ideation_draft
         )
 
-        
         if st.button("Generate Content", type="primary"):
 
-            if not topic or not audience:
+            if not topic.strip() or not audience.strip():
                 st.warning(
                     "Please enter a topic and target audience."
                 )
 
             else:
                 with st.spinner("Generating content..."):
-
                     try:
                         result = generate_content_ideas(
                             topic,
@@ -953,8 +1018,6 @@ elif workflow == "Content Ideation":
                         st.error(
                             f"Generation failed: {error}"
                         )
-
-
 
 # EDITORIAL REVIEW
 elif workflow == "Editorial Review":
@@ -1306,14 +1369,20 @@ elif workflow == "Content Repurposing Studio":
 
 # DISPLAY GENERATED CONTENT
 
-if workflow == "Content Ideation":
+if (
+    workflow == "Content Ideation"
+    and selected_brand_id
+    and "selected_draft_id" in locals()
+):
     current_result = st.session_state.get(
         "working_draft_results", {}
     ).get(selected_draft_id, {})
-else:
+elif selected_brand_id:
     current_result = st.session_state.get(
         "brand_results", {}
     ).get(selected_brand_id, {})
+else:
+    current_result = {}
 
 if current_result:
 
