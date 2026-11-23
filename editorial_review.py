@@ -1,10 +1,11 @@
+
 # YAMAYA CONTENTFLOW
 # Editorial Quality and Claim Review
 
 import os
 import json
 from google import genai
-from brand_profiles import get_brand_profile
+from auth import get_brand_profile_data
 
 
 def review_content(
@@ -16,17 +17,27 @@ def review_content(
     technical accuracy, brand alignment and writing quality.
     """
 
-    brand_profile = get_brand_profile(brand_name)
+    if not isinstance(content, str) or not content.strip():
+        raise ValueError("Please provide content to review.")
 
-    brand_description = brand_profile["description"]
+    # Retrieve the selected brand's saved profile.
+    brand_profile = get_brand_profile_data(brand_name)
 
-    brand_voice = "\n".join(
-        brand_profile["brand_voice"]
-    )
+    if not brand_profile:
+        raise ValueError(
+            f"Brand profile for '{brand_name}' could not be found."
+        )
 
-    writing_guidelines = "\n".join(
-        brand_profile["writing_guidelines"]
-    )
+    # Extract the saved brand identity.
+    brand_description = brand_profile.get("description") or ""
+    brand_purpose = brand_profile.get("purpose") or ""
+    target_audience = brand_profile.get("target_audience") or ""
+    brand_values = brand_profile.get("brand_values") or ""
+    tone_of_voice = brand_profile.get("tone_of_voice") or ""
+    brand_personality = brand_profile.get("brand_personality") or ""
+    content_pillars = brand_profile.get("content_pillars") or ""
+    content_restrictions = brand_profile.get("content_restrictions") or ""
+    key_messages = brand_profile.get("key_messages") or ""
 
     api_key = os.getenv("GEMINI_API_KEY")
 
@@ -38,21 +49,50 @@ def review_content(
     model = "gemini-3.5-flash-lite"
 
     review_prompt = f"""
-You are a careful editorial reviewer working with
-{brand_profile["brand_name"]}.
+You are a careful editorial reviewer working exclusively
+with {brand_profile["name"]}.
 
 Your task is to review the submitted content.
 Be critical, fair, evidence-conscious and transparent
 about uncertainty.
 
+BRAND IDENTITY:
+
 BRAND DESCRIPTION:
 {brand_description}
 
-BRAND VOICE:
-{brand_voice}
+BRAND PURPOSE:
+{brand_purpose}
 
-WRITING GUIDELINES:
-{writing_guidelines}
+TARGET AUDIENCE:
+{target_audience}
+
+BRAND VALUES:
+{brand_values}
+
+TONE OF VOICE:
+{tone_of_voice}
+
+BRAND PERSONALITY:
+{brand_personality}
+
+CONTENT PILLARS:
+{content_pillars}
+
+CONTENT RESTRICTIONS:
+{content_restrictions}
+
+KEY MESSAGES:
+{key_messages}
+
+BRAND ALIGNMENT INSTRUCTIONS:
+
+Evaluate the submitted content against the selected
+brand's saved identity.
+
+Do not impose another brand's voice or standards.
+Respect the selected brand's content pillars,
+restrictions, audience and values.
 
 CONTENT TO REVIEW:
 {content}
@@ -160,7 +200,9 @@ STRICT REVIEW RULES:
 
 - A lack of obvious issues does not mean the content
   has been fact-checked.
-  PART 4: FINAL EDITORIAL STATUS
+
+
+PART 4: FINAL EDITORIAL STATUS
 
 Choose exactly ONE status:
 
@@ -181,6 +223,7 @@ or product-related claims lack sufficient evidence.
 Serious misleading claims, dangerous misinformation,
 fabricated evidence or unsupported guarantees remain.
 
+
 STATUS SELECTION RULES:
 
 - Choose the most serious applicable status.
@@ -191,6 +234,8 @@ STATUS SELECTION RULES:
 - Never approve content merely because it is well written.
 - Never describe AI review as proof of factual accuracy.
 - Briefly explain why the selected status was chosen.
+
+
 FINAL OUTPUT FORMAT:
 
 Return your entire review as valid JSON.
@@ -227,6 +272,7 @@ IMPORTANT:
 - Do not invent claims that are absent from the submitted content.
 - If there are no relevant claims or issues, return an empty array.
 """
+
     try:
         response = client.models.generate_content(
             model=model,
@@ -272,9 +318,14 @@ IMPORTANT:
                     f"Invalid editorial review: "
                     f"'{field}' must be a list."
                 )
+
         for claim in parsed_response["claims"]:
             if not isinstance(claim, dict):
-                return "Invalid editorial review: each claim must be a dictionary."
+                return (
+                    "Invalid editorial review: "
+                    "each claim must be a dictionary."
+                )
+
             required_claim_fields = {
                 "claim",
                 "claim_type",
@@ -302,6 +353,7 @@ IMPORTANT:
                     "Invalid editorial review: "
                     "human_verification_required must be True or False."
                 )
+
             if (
                 claim.get("evidence_status") == "No supporting source provided"
                 and claim.get("human_verification_required") is False
@@ -310,6 +362,7 @@ IMPORTANT:
                     "Validation error: an unsupported claim "
                     "cannot be marked as not requiring human verification."
                 )
+
         if not isinstance(parsed_response["final_status"], str):
             return "Invalid editorial review: final_status must be text."
 
@@ -330,6 +383,7 @@ IMPORTANT:
             )
 
         return parsed_response
+
     except Exception as error:
         return (
             f"Editorial review failed: "
