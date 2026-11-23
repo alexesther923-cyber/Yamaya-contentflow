@@ -1,6 +1,7 @@
+
 import os
 from google import genai
-from brand_profiles import get_brand_profile
+from auth import get_brand_profile_data
 
 
 def generate_content_ideas(
@@ -8,47 +9,73 @@ def generate_content_ideas(
     audience,
     format_type,
     tone,
-    brand_name="Yamaya Afrique"
+    brand_name
 ):
-        # Retrieve the selected brand profile
-    brand_profile = get_brand_profile(brand_name)
+    # Retrieve the selected brand's saved profile from Supabase.
+    brand_profile = get_brand_profile_data(brand_name)
 
-    brand_description = brand_profile["description"]
-    brand_audience = brand_profile["target_audience"]
+    if not brand_profile:
+        raise ValueError(
+            f"Brand profile for '{brand_name}' could not be found."
+        )
 
-    brand_voice = "\n".join(
-        brand_profile["brand_voice"]
-    )
+    # Extract the selected brand's identity.
+    description = brand_profile.get("description") or ""
+    purpose = brand_profile.get("purpose") or ""
+    target_audience = brand_profile.get("target_audience") or ""
+    brand_values = brand_profile.get("brand_values") or ""
+    tone_of_voice = brand_profile.get("tone_of_voice") or ""
+    personality = brand_profile.get("brand_personality") or ""
+    content_pillars = brand_profile.get("content_pillars") or ""
+    content_restrictions = brand_profile.get("content_restrictions") or ""
+    key_messages = brand_profile.get("key_messages") or ""
 
-    writing_guidelines = "\n".join(
-        brand_profile["writing_guidelines"]
-    )
-    # Retrieve API key securely
+    # Retrieve API key securely.
     api_key = os.getenv("GEMINI_API_KEY")
 
     if not api_key:
         raise ValueError("Gemini API key not found.")
 
-    # Connect to Gemini
     client = genai.Client(api_key=api_key)
-
     model = "gemini-3.5-flash-lite"
 
-    # STAGE 1: Generate five content ideas
-    ideas_prompt = f"""
-You are the content strategist for {brand_profile["brand_name"]}.
+    brand_context = f"""
+BRAND NAME:
+{brand_profile["name"]}
 
 BRAND DESCRIPTION:
-{brand_description}
+{description}
+
+BRAND PURPOSE:
+{purpose}
 
 TARGET AUDIENCE:
-{brand_audience}
+{target_audience}
 
-BRAND VOICE:
-{brand_voice}
+BRAND VALUES:
+{brand_values}
 
-WRITING GUIDELINES:
-{writing_guidelines}
+TONE OF VOICE:
+{tone_of_voice}
+
+BRAND PERSONALITY:
+{personality}
+
+CONTENT PILLARS:
+{content_pillars}
+
+CONTENT RESTRICTIONS:
+{content_restrictions}
+
+KEY MESSAGES:
+{key_messages}
+"""
+
+    # STAGE 1: Generate five content ideas.
+    ideas_prompt = f"""
+You are the content strategist for {brand_profile["name"]}.
+
+{brand_context}
 
 CONTENT BRIEF:
 Topic: {topic}
@@ -65,14 +92,17 @@ For each idea, include:
 3. An engaging opening hook.
 
 EDITORIAL RULES:
-- Follow the selected brand's identity and writing guidelines.
+- Follow the selected brand's identity.
+- Respect its content pillars and restrictions.
+- Make the ideas relevant to the target audience.
 - Avoid repetitive or predictable ideas.
 - Do not invent statistics or specific cultural facts.
-- Make the ideas relevant to the target audience.
+- Do not use another brand's identity.
 - Keep the ideas practical for the selected brand.
 
 Return only the five numbered ideas.
 """
+
     try:
         ideas_response = client.models.generate_content(
             model=model,
@@ -82,23 +112,16 @@ Return only the five numbered ideas.
         ideas = ideas_response.text
 
         if not ideas:
-            return "The AI did not return any content ideas. Please try again."
+            return (
+                "The AI did not return any content ideas. "
+                "Please try again."
+            )
 
-        # STAGE 2: Develop the strongest idea
+        # STAGE 2: Develop the strongest idea.
         development_prompt = f"""
-You are the senior creative editor for {brand_profile["brand_name"]}.
+You are the senior creative editor for {brand_profile["name"]}.
 
-BRAND DESCRIPTION:
-{brand_description}
-
-TARGET AUDIENCE:
-{brand_audience}
-
-BRAND VOICE:
-{brand_voice}
-
-WRITING GUIDELINES:
-{writing_guidelines}
+{brand_context}
 
 CONTENT BRIEF:
 Topic: {topic}
@@ -143,11 +166,13 @@ HASHTAGS:
 Suggest 5-8 relevant hashtags.
 
 EDITORIAL RULES:
-- Follow the selected brand's identity and writing guidelines.
-- Avoid unsupported statistics, claims and invented experiences.
+- Follow the selected brand's identity.
+- Respect its content pillars and restrictions.
+- Avoid unsupported statistics and claims.
 - Do not fabricate quotes or research findings.
 - Avoid generic AI-sounding expressions.
 - Avoid unnecessary repetition.
+- Do not introduce another brand's voice.
 - Keep the content practical for the selected brand.
 
 Use clear headings and organise the output properly.
@@ -166,7 +191,6 @@ Use clear headings and organise the output properly.
                 "could not be developed. Please try again."
             )
 
-        # Combine both stages
         return (
             "========== FIVE CONTENT IDEAS ==========\n\n"
             + ideas
