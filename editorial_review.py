@@ -354,23 +354,25 @@ IMPORTANT:
                     "human_verification_required must be True or False."
                 )
 
+            
             if (
-    claim.get("evidence_status") == "No supporting source provided"
-    and claim.get("claim_type") in [
-        "Factual",
-        "Scientific",
-        "Scientific or technical",
-        "Health-related",
-        "Product-related"
-    ]
-    and claim.get("human_verification_required") is False
-):
-    return (
-        "Validation error: an unsupported factual, "
-        "scientific, health-related or product-related "
-        "claim cannot be marked as not requiring "
-        "human verification."
-    )
+                claim.get("evidence_status") == "No supporting source provided"
+                and claim.get("claim_type") in [
+                    "Factual",
+                    "Scientific",
+                    "Scientific or technical",
+                    "Health-related",
+                    "Product-related"
+                ]
+                and claim.get("human_verification_required") is False
+            ):
+                return (
+                    "Validation error: an unsupported factual, "
+                    "scientific, health-related or product-related "
+                    "claim cannot be marked as not requiring "
+                    "human verification."
+                )
+
                 
 
         if not isinstance(parsed_response["final_status"], str):
