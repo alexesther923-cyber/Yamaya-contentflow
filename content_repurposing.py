@@ -1,13 +1,10 @@
+
 # YAMAYA CONTENTFLOW
 # Content Repurposing Studio
 
-from brand_profiles import get_brand_profile
 import os
 from google import genai
-"""
-Transforms existing source material into
-brand-aligned content for different platforms.
-"""
+from auth import get_brand_profile_data
 
 
 def validate_source_input(source_text, brand_name, output_format):
@@ -25,7 +22,12 @@ def validate_source_input(source_text, brand_name, output_format):
     if not isinstance(brand_name, str) or not brand_name.strip():
         raise ValueError("Please select a valid brand.")
 
-    get_brand_profile(brand_name)
+    brand_profile = get_brand_profile_data(brand_name)
+
+    if not brand_profile:
+        raise ValueError(
+            f"Brand profile for '{brand_name}' could not be found."
+        )
 
     allowed_formats = [
         "Carousel",
@@ -47,26 +49,39 @@ def repurpose_content(source_text, brand_name, output_format):
     brand-aligned content using Gemini AI.
     """
 
-    # Check that the input is valid.
     validate_source_input(
         source_text,
         brand_name,
         output_format
     )
 
-    # Retrieve the selected brand's profile.
-    brand = get_brand_profile(brand_name)
+    # Retrieve the selected brand's saved profile.
+    brand = get_brand_profile_data(brand_name)
 
-    # Retrieve the Gemini API key.
+    if not brand:
+        raise ValueError(
+            f"Brand profile for '{brand_name}' could not be found."
+        )
+
+    # Extract the saved brand identity.
+    description = brand.get("description") or ""
+    purpose = brand.get("purpose") or ""
+    target_audience = brand.get("target_audience") or ""
+    brand_values = brand.get("brand_values") or ""
+    tone_of_voice = brand.get("tone_of_voice") or ""
+    personality = brand.get("brand_personality") or ""
+    content_pillars = brand.get("content_pillars") or ""
+    visual_guidelines = brand.get("visual_guidelines") or ""
+    content_restrictions = brand.get("content_restrictions") or ""
+    key_messages = brand.get("key_messages") or ""
+
     api_key = os.getenv("GEMINI_API_KEY")
 
     if not api_key:
         raise ValueError("Gemini API key not found.")
 
-    # Connect to Gemini.
     client = genai.Client(api_key=api_key)
 
-    # Instructions for the selected content format.
     format_instructions = {
         "Carousel": (
             "Create a social media carousel with 6–8 slides. "
@@ -94,23 +109,44 @@ def repurpose_content(source_text, brand_name, output_format):
         )
     }
 
-    # Build the AI instructions.
     prompt = f"""
-You are an experienced content repurposing assistant.
+You are an experienced content repurposing assistant
+working exclusively for {brand["name"]}.
 
-Your task is to transform the supplied source material
-into the requested content format.
+BRAND IDENTITY
 
-BRAND INFORMATION
+Brand name:
+{brand["name"]}
 
-Brand: {brand["brand_name"]}
-Description: {brand["description"]}
-Industry: {brand["industry"]}
-Target audience: {brand["target_audience"]}
-Brand voice: {", ".join(brand["brand_voice"])}
+Description:
+{description}
 
-Writing guidelines:
-{chr(10).join(brand["writing_guidelines"])}
+Purpose:
+{purpose}
+
+Target audience:
+{target_audience}
+
+Brand values:
+{brand_values}
+
+Tone of voice:
+{tone_of_voice}
+
+Brand personality:
+{personality}
+
+Content pillars:
+{content_pillars}
+
+Visual guidelines:
+{visual_guidelines}
+
+Key messages:
+{key_messages}
+
+Content restrictions:
+{content_restrictions}
 
 SOURCE MATERIAL:
 {source_text}
@@ -145,14 +181,14 @@ IMPORTANT EDITORIAL RULES:
 7. Do not introduce unsupported scientific,
    medical, or product performance claims.
 
-8. Creative hooks, headlines and transitions
-   are allowed, but they must not introduce
-   new factual information.
+8. Creative hooks, headlines and transitions are
+   allowed, but they must not introduce new facts.
 
 9. If information is missing, leave it out
    instead of guessing.
 
-10. Follow the selected brand's writing guidelines.
+10. Follow the selected brand's identity,
+    content pillars and restrictions.
 
 11. Use natural, human-sounding language.
 
@@ -166,7 +202,6 @@ IMPORTANT EDITORIAL RULES:
 Return the completed content in the requested format.
 """
 
-    # Generate the repurposed content.
     response = client.models.generate_content(
         model="gemini-3.5-flash-lite",
         contents=prompt
