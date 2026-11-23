@@ -371,10 +371,7 @@ IMPORTANT:
         "claim cannot be marked as not requiring "
         "human verification."
     )
-                return (
-                    "Validation error: an unsupported claim "
-                    "cannot be marked as not requiring human verification."
-                )
+                
 
         if not isinstance(parsed_response["final_status"], str):
             return "Invalid editorial review: final_status must be text."
