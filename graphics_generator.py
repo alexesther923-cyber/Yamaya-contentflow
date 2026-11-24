@@ -477,7 +477,23 @@ def carousel_to_png(images):
         for image in images
     ]
 
+# --------------------------------------------------
+# LAYOUT DEFINITIONS
+# --------------------------------------------------
 
+LAYOUT_TYPES = {
+    "editorial_cover": "cover",
+    "bold_statement": "statement",
+    "conversation": "conversation",
+    "editorial_commentary": "commentary",
+    "minimal_statement": "minimal",
+    "editorial_statement": "statement",
+    "editorial_closing": "closing",
+    "comparison_layout": "comparison",
+    "list_layout": "list",
+    "fact_layout": "statistic",
+    "photo_led": "photo"
+}
 # --------------------------------------------------
 # FIRST CAROUSEL TEST
 # --------------------------------------------------
