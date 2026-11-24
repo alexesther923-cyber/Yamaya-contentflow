@@ -1,6 +1,6 @@
 
 # YAMAYA CONTENTFLOW
-# Local Brand Graphics Generator
+# Structured, Editable Brand Graphics Engine
 
 import io
 import os
@@ -16,60 +16,159 @@ CANVAS_WIDTH = 1080
 CANVAS_HEIGHT = 1350
 
 
+# --------------------------------------------------
+# BRAND CONFIGURATION
+# --------------------------------------------------
+
 def extract_brand_colors(brand_colors):
     """Extract valid hexadecimal colours from a brand profile."""
 
     if isinstance(brand_colors, (list, tuple)):
-        brand_colors = " ".join(str(color) for color in brand_colors)
+        brand_colors = " ".join(str(c) for c in brand_colors)
 
     if not isinstance(brand_colors, str):
-        raise ValueError("Brand colours must be provided as text or a list.")
+        raise ValueError("Brand colours must be text or a list.")
 
     colors = re.findall(r"#[0-9A-Fa-f]{6}\b", brand_colors)
 
     if len(colors) < 3:
-        raise ValueError(
-            "At least three valid brand colours are required."
-        )
+        raise ValueError("At least three brand colours are required.")
 
     return [color.upper() for color in colors]
 
 
 def load_fonts():
-    """Load the brand fonts from the repository's fonts directory."""
+    """Load the brand's headline and body fonts."""
 
-    headline_path = os.path.join(
-        FONTS_DIR,
-        "Fredoka-VariableFont_wdth,wght.ttf"
-    )
+    paths = {
+        "headline": os.path.join(
+            FONTS_DIR,
+            "Fredoka-VariableFont_wdth,wght.ttf"
+        ),
+        "body": os.path.join(
+            FONTS_DIR,
+            "Inter-VariableFont_opsz,wght.ttf"
+        ),
+        "bold": os.path.join(
+            FONTS_DIR,
+            "Inter_18pt-Bold.ttf"
+        )
+    }
 
-    body_path = os.path.join(
-        FONTS_DIR,
-        "Inter-VariableFont_opsz,wght.ttf"
-    )
-
-    bold_path = os.path.join(
-        FONTS_DIR,
-        "Inter_18pt-Bold.ttf"
-    )
-
-    for font_path in [headline_path, body_path, bold_path]:
-        if not os.path.isfile(font_path):
+    for path in paths.values():
+        if not os.path.isfile(path):
             raise FileNotFoundError(
-                f"Required font file not found: {font_path}"
+                f"Required font file not found: {path}"
             )
 
+    return paths
+
+
+# --------------------------------------------------
+# EDITABLE SLIDE MODEL
+# --------------------------------------------------
+
+def create_slide(slide_id, layout, background, elements):
+    """
+    Create a structured slide.
+
+    Elements remain independent and editable.
+    """
+
+    if not isinstance(elements, list):
+        raise TypeError("Slide elements must be a list.")
+
     return {
-        "headline_path": headline_path,
-        "body_path": body_path,
-        "bold": ImageFont.truetype(bold_path, 30)
+        "slide_id": slide_id,
+        "layout": layout,
+        "canvas": {
+            "width": CANVAS_WIDTH,
+            "height": CANVAS_HEIGHT
+        },
+        "background": background,
+        "elements": elements
     }
 
 
+def create_text(
+    element_id,
+    content,
+    x,
+    y,
+    width,
+    height,
+    font="body",
+    font_size=40,
+    color="#28231F",
+    align="left",
+    valign="top",
+    line_spacing=12,
+    min_font_size=18
+):
+    """Create an independently editable text element."""
+
+    return {
+        "id": element_id,
+        "type": "text",
+        "content": str(content),
+        "position": {"x": x, "y": y},
+        "size": {"width": width, "height": height},
+        "font": font,
+        "font_size": font_size,
+        "min_font_size": min_font_size,
+        "color": color,
+        "align": align,
+        "valign": valign,
+        "line_spacing": line_spacing
+    }
+
+
+def create_shape(
+    element_id,
+    shape,
+    x,
+    y,
+    width,
+    height,
+    fill,
+    radius=0,
+    outline=None,
+    outline_width=0
+):
+    """Create an independently editable graphic shape."""
+
+    allowed_shapes = [
+        "rectangle",
+        "rounded_rectangle",
+        "ellipse",
+        "line"
+    ]
+
+    if shape not in allowed_shapes:
+        raise ValueError(f"Unsupported shape: {shape}")
+
+    return {
+        "id": element_id,
+        "type": "shape",
+        "shape": shape,
+        "position": {"x": x, "y": y},
+        "size": {"width": width, "height": height},
+        "fill": fill,
+        "radius": radius,
+        "outline": outline,
+        "outline_width": outline_width
+    }
+
+
+# --------------------------------------------------
+# TEXT LAYOUT
+# --------------------------------------------------
+
 def wrap_text(text, font, draw, max_width):
-    """Wrap text to fit within a specified width."""
+    """Wrap text to fit a specified width."""
 
     words = str(text).split()
+
     lines = []
     current_line = ""
 
@@ -108,11 +207,8 @@ def fit_text(
 ):
     """Find a font size that fits the available text area."""
 
-    for size in range(
-        starting_size,
-        minimum_size - 1,
-        -2
-    ):
+    for size in range(starting_size, minimum_size - 1, -2):
+
         font = ImageFont.truetype(font_path, size)
 
         lines = wrap_text(
@@ -142,160 +238,223 @@ def fit_text(
     return font, lines, line_height
 
 
-def generate_graphic(
-    title,
-    body,
-    brand_colors,
-    brand_name="Yamaya Afrique"
-):
-    """Generate a 1080 x 1350 branded editorial graphic."""
+# --------------------------------------------------
+# ELEMENT RENDERING
+# --------------------------------------------------
 
-    if not str(title).strip():
-        raise ValueError("Please provide a graphic title.")
+def render_shape(draw, element):
+    """Render an individual shape element."""
 
-    if not str(body).strip():
-        raise ValueError("Please provide graphic body text.")
+    x = element["position"]["x"]
+    y = element["position"]["y"]
 
-    colors = extract_brand_colors(brand_colors)
+    width = element["size"]["width"]
+    height = element["size"]["height"]
 
-    background_color = colors[0]
-    accent_color = colors[1]
-    dark_color = colors[2]
+    shape = element["shape"]
 
-    fonts = load_fonts()
+    bounds = (
+        x,
+        y,
+        x + width,
+        y + height
+    )
+
+    fill = element.get("fill")
+    outline = element.get("outline")
+    outline_width = element.get("outline_width", 0)
+
+    if shape == "rectangle":
+
+        draw.rectangle(
+            bounds,
+            fill=fill,
+            outline=outline,
+            width=outline_width
+        )
+
+    elif shape == "rounded_rectangle":
+
+        draw.rounded_rectangle(
+            bounds,
+            radius=element.get("radius", 20),
+            fill=fill,
+            outline=outline,
+            width=outline_width
+        )
+
+    elif shape == "ellipse":
+
+        draw.ellipse(
+            bounds,
+            fill=fill,
+            outline=outline,
+            width=outline_width
+        )
+
+    elif shape == "line":
+
+        draw.line(
+            (x, y, x + width, y + height),
+            fill=fill,
+            width=max(1, outline_width)
+        )
+
+
+def render_text(draw, element, fonts):
+    """Render an individual text element."""
+
+    font_type = element.get("font", "body")
+
+    if font_type not in fonts:
+        raise ValueError(f"Unknown font type: {font_type}")
+
+    font_path = fonts[font_type]
+
+    x = element["position"]["x"]
+    y = element["position"]["y"]
+
+    width = element["size"]["width"]
+    height = element["size"]["height"]
+
+    font, lines, line_height = fit_text(
+        element["content"],
+        font_path,
+        draw,
+        width,
+        height,
+        element["font_size"],
+        element.get("min_font_size", 18),
+        element.get("line_spacing", 12)
+    )
+
+    total_height = len(lines) * line_height
+
+    if total_height > height:
+        raise ValueError(
+            f"Text element '{element['id']}' exceeds its available height."
+        )
+
+    valign = element.get("valign", "top")
+
+    if valign == "middle":
+        y += (height - total_height) // 2
+
+    elif valign == "bottom":
+        y += height - total_height
+
+    align = element.get("align", "left")
+
+    for line in lines:
+
+        line_width = draw.textbbox(
+            (0, 0),
+            line,
+            font=font
+        )[2]
+
+        if align == "center":
+            text_x = x + (width - line_width) // 2
+
+        elif align == "right":
+            text_x = x + width - line_width
+
+        else:
+            text_x = x
+
+        draw.text(
+            (text_x, y),
+            line,
+            font=font,
+            fill=element.get("color", "#28231F")
+        )
+
+        y += line_height
+
+
+# --------------------------------------------------
+# SLIDE RENDERER
+# --------------------------------------------------
+
+def render_slide(slide, fonts=None):
+    """
+    Render structured slide data into a Pillow image.
+
+    The original slide data remains unchanged.
+    """
+
+    if not isinstance(slide, dict):
+        raise TypeError("Slide must be a dictionary.")
+
+    if fonts is None:
+        fonts = load_fonts()
+
+    canvas = slide["canvas"]
+
+    width = canvas["width"]
+    height = canvas["height"]
 
     image = Image.new(
         "RGB",
-        (CANVAS_WIDTH, CANVAS_HEIGHT),
-        background_color
+        (width, height),
+        slide["background"]
     )
 
     draw = ImageDraw.Draw(image)
 
-    # Editorial frame
-    draw.rounded_rectangle(
-        (55, 55, 1025, 1295),
-        radius=35,
-        outline=dark_color,
-        width=3
-    )
+    for element in slide["elements"]:
 
-    # Decorative circle
-    draw.ellipse(
-        (850, 80, 1080, 310),
-        fill=accent_color
-    )
+        element_type = element["type"]
 
-    draw.ellipse(
-        (930, 160, 1020, 250),
-        fill=background_color
-    )
+        if element_type == "shape":
 
-    # Brand name
-    draw.text(
-        (95, 105),
-        brand_name.upper(),
-        font=fonts["bold"],
-        fill=dark_color
-    )
+            render_shape(draw, element)
 
-    # Accent line
-    draw.rounded_rectangle(
-        (95, 190, 250, 205),
-        radius=7,
-        fill=accent_color
-    )
+        elif element_type == "text":
 
-    # Fit title into its available space
-    title_font, title_lines, title_line_height = fit_text(
-        title,
-        fonts["headline_path"],
-        draw,
-        max_width=850,
-        max_height=350,
-        starting_size=84,
-        minimum_size=52,
-        line_spacing=18
-    )
+            render_text(draw, element, fonts)
 
-    # Keep titles to a maximum of three lines
-    if len(title_lines) > 3:
-        title_lines = title_lines[:3]
-        title_lines[-1] = title_lines[-1].rstrip(".,;:") + "..."
+        else:
 
-    title_y = 290
-
-    for line in title_lines:
-        draw.text(
-            (95, title_y),
-            line,
-            font=title_font,
-            fill=dark_color
-        )
-
-        title_y += title_line_height
-
-    # Calculate remaining space for body text
-    body_y = title_y + 55
-    body_bottom = 1100
-    body_height = body_bottom - body_y
-
-    if body_height <= 0:
-        raise ValueError(
-            "The title is too long for this graphic layout."
-        )
-
-    # Fit body text into remaining space
-    body_font, body_lines, body_line_height = fit_text(
-        body,
-        fonts["body_path"],
-        draw,
-        max_width=850,
-        max_height=body_height,
-        starting_size=36,
-        minimum_size=24,
-        line_spacing=18
-    )
-
-    # Prevent body text from entering the footer
-    max_body_lines = max(
-        1,
-        body_height // body_line_height
-    )
-
-    if len(body_lines) > max_body_lines:
-        body_lines = body_lines[:max_body_lines]
-        body_lines[-1] = body_lines[-1].rstrip(".,;:") + "..."
-
-    for line in body_lines:
-        draw.text(
-            (95, body_y),
-            line,
-            font=body_font,
-            fill=dark_color
-        )
-
-        body_y += body_line_height
-
-    # Bottom editorial accent
-    draw.rounded_rectangle(
-        (95, 1160, 985, 1168),
-        radius=4,
-        fill=accent_color
-    )
-
-    draw.text(
-        (95, 1195),
-        brand_name,
-        font=fonts["bold"],
-        fill=dark_color
-    )
+            raise ValueError(
+                f"Unsupported element type: {element_type}"
+            )
 
     return image
 
 
+# --------------------------------------------------
+# CAROUSEL RENDERING
+# --------------------------------------------------
+
+def render_carousel(slides):
+    """Render a list of editable slides into PNG-ready images."""
+
+    if not isinstance(slides, list) or not slides:
+        raise ValueError("Provide at least one slide.")
+
+    fonts = load_fonts()
+
+    images = []
+
+    for slide in slides:
+
+        images.append(
+            render_slide(
+                slide,
+                fonts=fonts
+            )
+        )
+
+    return images
+
+
+# --------------------------------------------------
+# PNG EXPORT
+# --------------------------------------------------
+
 def graphic_to_png(image):
-    """Convert a generated graphic into downloadable PNG bytes."""
+    """Convert a rendered graphic into downloadable PNG bytes."""
 
     output = io.BytesIO()
 
@@ -308,3 +467,357 @@ def graphic_to_png(image):
     output.seek(0)
 
     return output
+
+
+def carousel_to_png(images):
+    """Convert rendered carousel slides into PNG byte streams."""
+
+    return [
+        graphic_to_png(image)
+        for image in images
+    ]
+
+
+# --------------------------------------------------
+# FIRST CAROUSEL TEST
+# --------------------------------------------------
+
+def build_relationships_carousel(brand_colors):
+    """
+    Build the first Yamaya Afrique carousel.
+
+    Content:
+    Nigerian University Relationships
+
+    The returned slides contain editable structured data,
+    not flattened images.
+    """
+
+    colors = extract_brand_colors(brand_colors)
+
+    cream = colors[0]
+    orange = colors[1]
+    brown = colors[2]
+
+    dark = colors[5] if len(colors) > 5 else "#28231F"
+
+    slides = []
+
+    # SLIDE 1: EDITORIAL COVER
+
+    slides.append(
+        create_slide(
+            "slide_01",
+            "editorial_cover",
+            cream,
+            [
+                create_text(
+                    "brand",
+                    "YAMAYA AFRIQUE",
+                    75, 75, 600, 55,
+                    "bold", 30, dark
+                ),
+
+                create_shape(
+                    "cover_accent",
+                    "rectangle",
+                    75, 180, 140, 14,
+                    orange
+                ),
+
+                create_text(
+                    "cover_title",
+                    "NIGERIAN UNIVERSITY RELATIONSHIPS",
+                    75, 300, 930, 440,
+                    "headline", 112, brown,
+                    line_spacing=12
+                ),
+
+                create_text(
+                    "cover_subtitle",
+                    "A course nobody registered for.",
+                    80, 850, 850, 130,
+                    "body", 48, dark,
+                    line_spacing=15
+                ),
+
+                create_text(
+                    "cover_footer",
+                    "100-LEVEL FEELINGS. FINAL-YEAR COMPLICATIONS.",
+                    75, 1190, 930, 60,
+                    "bold", 24, brown
+                )
+            ]
+        )
+    )
+
+    # SLIDE 2: BOLD STATEMENT
+
+    slides.append(
+        create_slide(
+            "slide_02",
+            "bold_statement",
+            dark,
+            [
+                create_text(
+                    "slide_number",
+                    "02 / 07",
+                    75, 75, 200, 45,
+                    "bold", 26, orange
+                ),
+
+                create_text(
+                    "statement",
+                    "YOU PEOPLE ARE NOT DATING.",
+                    75, 300, 930, 390,
+                    "headline", 112, cream,
+                    line_spacing=15
+                ),
+
+                create_shape(
+                    "statement_accent",
+                    "rectangle",
+                    75, 790, 240, 16,
+                    orange
+                ),
+
+                create_text(
+                    "explanation",
+                    "But somehow, you have a timetable for when to call, a routine for good morning texts and an unspoken agreement not to ask questions.",
+                    75, 870, 900, 300,
+                    "body", 42, cream,
+                    line_spacing=18
+                )
+            ]
+        )
+    )
+
+    # SLIDE 3: CONVERSATION
+
+    slides.append(
+        create_slide(
+            "slide_03",
+            "conversation",
+            cream,
+            [
+                create_text(
+                    "slide_number",
+                    "03 / 07",
+                    75, 75, 200, 45,
+                    "bold", 26, brown
+                ),
+
+                create_shape(
+                    "message_one",
+                    "rounded_rectangle",
+                    75, 260, 850, 230,
+                    orange,
+                    radius=35
+                ),
+
+                create_text(
+                    "message_one_text",
+                    "I WAS IN CLASS.",
+                    115, 325, 770, 120,
+                    "headline", 76, dark,
+                    valign="middle"
+                ),
+
+                create_shape(
+                    "message_two",
+                    "rounded_rectangle",
+                    220, 560, 790, 190,
+                    brown,
+                    radius=35
+                ),
+
+                create_text(
+                    "message_two_text",
+                    "THREE HOURS LATER...",
+                    260, 600, 710, 110,
+                    "headline", 58, cream,
+                    valign="middle"
+                ),
+
+                create_text(
+                    "explanation",
+                    "Last seen. Status. Followers. Every available clue.",
+                    75, 870, 900, 180,
+                    "body", 42, dark,
+                    line_spacing=18
+                )
+            ]
+        )
+    )
+
+    # SLIDE 4: EDITORIAL COMMENTARY
+
+    slides.append(
+        create_slide(
+            "slide_04",
+            "editorial_commentary",
+            orange,
+            [
+                create_text(
+                    "slide_number",
+                    "04 / 07",
+                    75, 75, 200, 45,
+                    "bold", 26, dark
+                ),
+
+                create_text(
+                    "statement",
+                    "YOUR RELATIONSHIP IS NOW A FACULTY MATTER.",
+                    75, 250, 930, 470,
+                    "headline", 105, dark,
+                    line_spacing=12
+                ),
+
+                create_shape(
+                    "divider",
+                    "rectangle",
+                    75, 810, 930, 8,
+                    brown
+                ),
+
+                create_text(
+                    "explanation",
+                    "Your coursemates know. Your roommates know. Even the person selling snacks near your lecture hall has an opinion.",
+                    75, 880, 900, 250,
+                    "body", 39, dark,
+                    line_spacing=18
+                )
+            ]
+        )
+    )
+
+    # SLIDE 5: MINIMALIST STATEMENT
+
+    slides.append(
+        create_slide(
+            "slide_05",
+            "minimal_statement",
+            cream,
+            [
+                create_text(
+                    "slide_number",
+                    "05 / 07",
+                    75, 75, 200, 45,
+                    "bold", 26, brown
+                ),
+
+                create_text(
+                    "headline",
+                    "LOVE IS SWEET.",
+                    75, 330, 930, 170,
+                    "headline", 112, brown
+                ),
+
+                create_text(
+                    "headline_two",
+                    "TRANSPORT FARE IS NOT.",
+                    75, 500, 930, 240,
+                    "headline", 105, orange
+                ),
+
+                create_text(
+                    "explanation",
+                    "Sometimes the biggest relationship test is figuring out how to see each other without spending your entire weekly allowance.",
+                    75, 850, 900, 260,
+                    "body", 40, dark,
+                    line_spacing=18
+                )
+            ]
+        )
+    )
+
+    # SLIDE 6: EDITORIAL STATEMENT
+
+    slides.append(
+        create_slide(
+            "slide_06",
+            "editorial_statement",
+            brown,
+            [
+                create_text(
+                    "slide_number",
+                    "06 / 07",
+                    75, 75, 200, 45,
+                    "bold", 26, orange
+                ),
+
+                create_text(
+                    "headline",
+                    "YOU SAID YOU WOULD READ TOGETHER.",
+                    75, 270, 930, 390,
+                    "headline", 100, cream,
+                    line_spacing=14
+                ),
+
+                create_shape(
+                    "accent",
+                    "rectangle",
+                    75, 750, 170, 14,
+                    orange
+                ),
+
+                create_text(
+                    "explanation",
+                    "Somehow, two hours later, neither of you has opened the course material.",
+                    75, 850, 900, 230,
+                    "body", 43, cream,
+                    line_spacing=18
+                )
+            ]
+        )
+    )
+
+    # SLIDE 7: CLOSING
+
+    slides.append(
+        create_slide(
+            "slide_07",
+            "editorial_closing",
+            dark,
+            [
+                create_text(
+                    "brand",
+                    "YAMAYA AFRIQUE",
+                    75, 75, 600, 55,
+                    "bold", 30, orange
+                ),
+
+                create_text(
+                    "closing_question",
+                    "BE HONEST. WHICH ONE HAVE YOU EXPERIENCED?",
+                    75, 310, 930, 400,
+                    "headline", 100, cream,
+                    line_spacing=15
+                ),
+
+                create_shape(
+                    "closing_accent",
+                    "rectangle",
+                    75, 800, 220, 15,
+                    orange
+                ),
+
+                create_text(
+                    "call_to_action",
+                    "Tell us the most unserious thing you've witnessed in a Nigerian campus relationship.",
+                    75, 880, 900, 220,
+                    "body", 40, cream,
+                    line_spacing=18
+                ),
+
+                create_text(
+                    "footer",
+                    "WE KNOW YOU'VE GOT STORIES.",
+                    75, 1190, 900, 55,
+                    "bold", 27, orange
+                )
+            ]
+        )
+    )
+
+    return slides
