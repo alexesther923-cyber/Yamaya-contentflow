@@ -821,3 +821,86 @@ def build_relationships_carousel(brand_colors):
     )
 
     return slides
+# --------------------------------------------------
+# AUTOMATIC DESIGN SELECTION
+# --------------------------------------------------
+
+def select_layout(content, role=None):
+    """
+    Recommend a visual layout based on the purpose
+    and characteristics of the slide content.
+
+    An explicitly supplied role takes priority.
+    """
+
+    content = str(content).strip()
+    text = content.lower()
+
+    if not content:
+        raise ValueError("Slide content cannot be empty.")
+
+    # Explicit content roles
+    role_layouts = {
+        "cover": "editorial_cover",
+        "introduction": "editorial_cover",
+        "statement": "bold_statement",
+        "conversation": "conversation",
+        "explanation": "editorial_commentary",
+        "minimal": "minimal_statement",
+        "closing": "editorial_closing",
+        "question": "editorial_closing",
+        "comparison": "comparison_layout",
+        "list": "list_layout",
+        "statistic": "fact_layout",
+        "photo": "photo_led"
+    }
+
+    if role:
+        normalized_role = str(role).strip().lower()
+
+        if normalized_role not in role_layouts:
+            raise ValueError(
+                f"Unsupported content role: {role}"
+            )
+
+        return role_layouts[normalized_role]
+
+    # Automatic content analysis
+    if "?" in content and len(content.split()) <= 14:
+        return "editorial_closing"
+
+    if (
+        "\n" in content
+        or '"' in content
+        or "said:" in text
+        or "replied:" in text
+    ):
+        return "conversation"
+
+    if any(
+        marker in text
+        for marker in ["top 5", "top 10", "steps:", "first,", "second,"]
+    ):
+        return "list_layout"
+
+    if any(
+        marker in text
+        for marker in ["compared with", "versus", " vs ", "difference between"]
+    ):
+        return "comparison_layout"
+
+    if any(
+        marker in text
+        for marker in ["%", "percent", "statistics show", "survey found"]
+    ):
+        return "fact_layout"
+
+    word_count = len(content.split())
+
+    if word_count <= 7:
+        return "minimal_statement"
+
+    if word_count >= 30:
+        return "editorial_commentary"
+
+    return "bold_statement"
