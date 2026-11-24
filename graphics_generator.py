@@ -17,9 +17,7 @@ CANVAS_HEIGHT = 1350
 
 
 def extract_brand_colors(brand_colors):
-    """
-    Extract valid hexadecimal colours from a brand profile.
-    """
+    """Extract valid hexadecimal colours from a brand profile."""
 
     if isinstance(brand_colors, (list, tuple)):
         brand_colors = " ".join(str(color) for color in brand_colors)
@@ -38,9 +36,7 @@ def extract_brand_colors(brand_colors):
 
 
 def load_fonts():
-    """
-    Load the brand fonts from the repository's fonts directory.
-    """
+    """Load the brand fonts from the repository's fonts directory."""
 
     headline_path = os.path.join(
         FONTS_DIR,
@@ -64,25 +60,21 @@ def load_fonts():
             )
 
     return {
-        "headline": ImageFont.truetype(headline_path, 84),
-        "body": ImageFont.truetype(body_path, 36),
+        "headline_path": headline_path,
+        "body_path": body_path,
         "bold": ImageFont.truetype(bold_path, 30)
     }
 
 
 def wrap_text(text, font, draw, max_width):
-    """
-    Wrap text so it fits within the available graphic width.
-    """
+    """Wrap text to fit within a specified width."""
 
     words = str(text).split()
     lines = []
     current_line = ""
 
     for word in words:
-        test_line = (
-            f"{current_line} {word}".strip()
-        )
+        test_line = f"{current_line} {word}".strip()
 
         text_width = draw.textbbox(
             (0, 0),
@@ -104,17 +96,59 @@ def wrap_text(text, font, draw, max_width):
     return lines
 
 
+def fit_text(
+    text,
+    font_path,
+    draw,
+    max_width,
+    max_height,
+    starting_size,
+    minimum_size,
+    line_spacing
+):
+    """Find a font size that fits the available text area."""
+
+    for size in range(
+        starting_size,
+        minimum_size - 1,
+        -2
+    ):
+        font = ImageFont.truetype(font_path, size)
+
+        lines = wrap_text(
+            text,
+            font,
+            draw,
+            max_width
+        )
+
+        line_height = size + line_spacing
+        total_height = len(lines) * line_height
+
+        if total_height <= max_height:
+            return font, lines, line_height
+
+    font = ImageFont.truetype(font_path, minimum_size)
+
+    lines = wrap_text(
+        text,
+        font,
+        draw,
+        max_width
+    )
+
+    line_height = minimum_size + line_spacing
+
+    return font, lines, line_height
+
+
 def generate_graphic(
     title,
     body,
     brand_colors,
     brand_name="Yamaya Afrique"
 ):
-    """
-    Generate a 1080 x 1350 branded editorial graphic.
-
-    Returns a Pillow Image object.
-    """
+    """Generate a 1080 x 1350 branded editorial graphic."""
 
     if not str(title).strip():
         raise ValueError("Please provide a graphic title.")
@@ -138,7 +172,7 @@ def generate_graphic(
 
     draw = ImageDraw.Draw(image)
 
-    # Editorial decorative elements
+    # Editorial frame
     draw.rounded_rectangle(
         (55, 55, 1025, 1295),
         radius=35,
@@ -146,6 +180,7 @@ def generate_graphic(
         width=3
     )
 
+    # Decorative circle
     draw.ellipse(
         (850, 80, 1080, 310),
         fill=accent_color
@@ -171,13 +206,22 @@ def generate_graphic(
         fill=accent_color
     )
 
-    # Title
-    title_lines = wrap_text(
+    # Fit title into its available space
+    title_font, title_lines, title_line_height = fit_text(
         title,
-        fonts["headline"],
+        fonts["headline_path"],
         draw,
-        850
+        max_width=850,
+        max_height=350,
+        starting_size=84,
+        minimum_size=52,
+        line_spacing=18
     )
+
+    # Keep titles to a maximum of three lines
+    if len(title_lines) > 3:
+        title_lines = title_lines[:3]
+        title_lines[-1] = title_lines[-1].rstrip(".,;:") + "..."
 
     title_y = 290
 
@@ -185,24 +229,39 @@ def generate_graphic(
         draw.text(
             (95, title_y),
             line,
-            font=fonts["headline"],
+            font=title_font,
             fill=dark_color
         )
 
-        title_y += 105
+        title_y += title_line_height
 
-    # Body text
+    # Calculate remaining space for body text
     body_y = title_y + 55
+    body_bottom = 1100
+    body_height = body_bottom - body_y
 
-    body_lines = wrap_text(
+    if body_height <= 0:
+        raise ValueError(
+            "The title is too long for this graphic layout."
+        )
+
+    # Fit body text into remaining space
+    body_font, body_lines, body_line_height = fit_text(
         body,
-        fonts["body"],
+        fonts["body_path"],
         draw,
-        850
+        max_width=850,
+        max_height=body_height,
+        starting_size=36,
+        minimum_size=24,
+        line_spacing=18
     )
 
-    line_height = 58
-    max_body_lines = 10
+    # Prevent body text from entering the footer
+    max_body_lines = max(
+        1,
+        body_height // body_line_height
+    )
 
     if len(body_lines) > max_body_lines:
         body_lines = body_lines[:max_body_lines]
@@ -212,11 +271,11 @@ def generate_graphic(
         draw.text(
             (95, body_y),
             line,
-            font=fonts["body"],
+            font=body_font,
             fill=dark_color
         )
 
-        body_y += line_height
+        body_y += body_line_height
 
     # Bottom editorial accent
     draw.rounded_rectangle(
@@ -236,9 +295,7 @@ def generate_graphic(
 
 
 def graphic_to_png(image):
-    """
-    Convert a generated graphic into downloadable PNG bytes.
-    """
+    """Convert a generated graphic into downloadable PNG bytes."""
 
     output = io.BytesIO()
 
