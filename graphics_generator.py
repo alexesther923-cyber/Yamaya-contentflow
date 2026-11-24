@@ -920,3 +920,218 @@ def select_layout(content, role=None):
         return "editorial_commentary"
 
     return "bold_statement"
+def generate_layout_slide(
+    slide_id,
+    content,
+    brand_colors,
+    role=None,
+    title=None,
+    subtitle=None
+):
+    """
+    Generate an editable slide using the selected layout.
+
+    Existing text and shape constructors are reused.
+    """
+
+    colors = extract_brand_colors(brand_colors)
+
+    cream = colors[0]
+    orange = colors[1]
+    brown = colors[2]
+    dark = colors[5] if len(colors) > 5 else "#28231F"
+
+    layout = select_layout(
+        content,
+        role=role
+    )
+
+    elements = []
+
+    elements.append(
+        create_text(
+            "brand",
+            "YAMAYA AFRIQUE",
+            75, 75, 600, 55,
+            "bold", 30, dark
+        )
+    )
+
+    if layout == "editorial_cover":
+
+        elements.append(
+            create_shape(
+                "cover_accent",
+                "rectangle",
+                75, 180, 140, 14,
+                orange
+            )
+        )
+
+        elements.append(
+            create_text(
+                "cover_title",
+                title or content,
+                75, 300, 930, 440,
+                "headline", 112, brown,
+                line_spacing=12
+            )
+        )
+
+        if subtitle:
+            elements.append(
+                create_text(
+                    "cover_subtitle",
+                    subtitle,
+                    80, 850, 850, 180,
+                    "body", 48, dark
+                )
+            )
+
+        background = cream
+
+    elif layout == "bold_statement":
+
+        background = dark
+
+        elements.append(
+            create_text(
+                "statement",
+                title or content,
+                75, 300, 930, 520,
+                "headline", 112, cream,
+                line_spacing=15
+            )
+        )
+
+        elements.append(
+            create_shape(
+                "statement_accent",
+                "rectangle",
+                75, 900, 240, 16,
+                orange
+            )
+        )
+
+        if subtitle:
+            elements.append(
+                create_text(
+                    "explanation",
+                    subtitle,
+                    75, 990, 900, 230,
+                    "body", 42, cream
+                )
+            )
+
+    elif layout == "minimal_statement":
+
+        background = cream
+
+        elements.append(
+            create_text(
+                "statement",
+                title or content,
+                75, 390, 930, 480,
+                "headline", 112, brown,
+                valign="middle"
+            )
+        )
+
+        elements.append(
+            create_shape(
+                "minimal_accent",
+                "rectangle",
+                75, 940, 170, 14,
+                orange
+            )
+        )
+
+    elif layout == "editorial_closing":
+
+        background = dark
+
+        elements.append(
+            create_text(
+                "closing_question",
+                title or content,
+                75, 310, 930, 440,
+                "headline", 100, cream,
+                line_spacing=15
+            )
+        )
+
+        elements.append(
+            create_shape(
+                "closing_accent",
+                "rectangle",
+                75, 800, 220, 15,
+                orange
+            )
+        )
+
+        if subtitle:
+            elements.append(
+                create_text(
+                    "call_to_action",
+                    subtitle,
+                    75, 900, 900, 220,
+                    "body", 40, cream
+                )
+            )
+
+    elif layout == "conversation":
+
+        background = cream
+
+        elements.append(
+            create_shape(
+                "conversation_bubble",
+                "rounded_rectangle",
+                75, 300, 850, 230,
+                orange,
+                radius=35
+            )
+        )
+
+        elements.append(
+            create_text(
+                "conversation_text",
+                title or content,
+                115, 350, 770, 130,
+                "headline", 76, dark,
+                valign="middle"
+            )
+        )
+
+        if subtitle:
+            elements.append(
+                create_shape(
+                    "conversation_reply_bubble",
+                    "rounded_rectangle",
+                    220, 600, 790, 190,
+                    brown,
+                    radius=35
+                )
+            )
+
+            elements.append(
+                create_text(
+                    "conversation_reply",
+                    subtitle,
+                    260, 630, 710, 130,
+                    "headline", 58, cream,
+                    valign="middle"
+                )
+            )
+
+    else:
+        raise NotImplementedError(
+            f"Layout '{layout}' has not been implemented yet."
+        )
+
+    return create_slide(
+        slide_id,
+        layout,
+        background,
+        elements
+    )
