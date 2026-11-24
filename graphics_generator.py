@@ -856,20 +856,21 @@ def select_layout(content, role=None):
         raise ValueError("Slide content cannot be empty.")
 
     # Explicit content roles
-role_layouts = {
-    "cover": "editorial_cover",
-    "introduction": "editorial_cover",
-    "statement": "bold_statement",
-    "conversation": "conversation",
-    "explanation": "editorial_commentary",
-    "minimal": "minimal_statement",
-    "closing": "editorial_closing",
-    "question": "editorial_closing",
-    "comparison": "comparison_layout",
-    "list": "list_layout",
-    "statistic": "fact_layout",
-    "photo": "photo_led"
-}
+    role_layouts = {
+        "cover": "editorial_cover",
+        "introduction": "editorial_cover",
+        "statement": "bold_statement",
+        "conversation": "conversation",
+        "explanation": "editorial_commentary",
+        "commentary": "editorial_commentary",
+        "minimal": "minimal_statement",
+        "closing": "editorial_closing",
+        "question": "editorial_closing",
+        "comparison": "comparison_layout",
+        "list": "list_layout",
+        "statistic": "fact_layout",
+        "photo": "photo_led"
+    }
     if role:
         normalized_role = str(role).strip().lower()
 
