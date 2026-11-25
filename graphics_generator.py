@@ -1008,7 +1008,7 @@ def generate_layout_slide(
 
         background = cream
 
-    elif layout == "bold_statement":
+        elif layout == "bold_statement":
 
         background = dark
 
@@ -1016,7 +1016,7 @@ def generate_layout_slide(
             create_text(
                 "statement",
                 title or content,
-                75, 300, 930, 520,
+                75, 280, 930, 450,
                 "headline", 112, cream,
                 line_spacing=15
             )
@@ -1026,7 +1026,7 @@ def generate_layout_slide(
             create_shape(
                 "statement_accent",
                 "rectangle",
-                75, 900, 240, 16,
+                75, 770, 180, 14,
                 orange
             )
         )
@@ -1036,8 +1036,9 @@ def generate_layout_slide(
                 create_text(
                     "explanation",
                     subtitle,
-                    75, 990, 900, 230,
-                    "body", 42, cream
+                    75, 830, 900, 300,
+                    "body", 42, cream,
+                    line_spacing=18
                 )
             )
 
