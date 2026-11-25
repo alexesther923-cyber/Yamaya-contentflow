@@ -1243,6 +1243,87 @@ def generate_layout_slide(
                 )
             )
 
+        elif layout == "list_layout":
+
+        background = cream
+
+        items = [
+            item.strip()
+            for item in (subtitle or "").split("\n")
+            if item.strip()
+        ]
+
+        elements.append(
+            create_text(
+                "list_title",
+                title or content,
+                75, 190, 930, 250,
+                "headline", 82, brown,
+                line_spacing=10
+            )
+        )
+
+        if items:
+
+            item_count = len(items)
+
+            start_y = 480
+
+            available_height = 660
+
+            row_height = available_height / item_count
+
+            marker_size = 64
+
+            item_font_size = (
+                42 if item_count <= 4
+                else 36 if item_count <= 5
+                else 30
+            )
+
+            for index, item in enumerate(items):
+
+                y = int(start_y + index * row_height)
+
+                marker_color = (
+                    orange if index % 2 == 0
+                    else brown
+                )
+
+                elements.append(
+                    create_shape(
+                        f"list_marker_{index + 1}",
+                        "ellipse",
+                        75, y + 10,
+                        marker_size, marker_size,
+                        marker_color
+                    )
+                )
+
+                elements.append(
+                    create_text(
+                        f"list_number_{index + 1}",
+                        str(index + 1),
+                        75, y + 10,
+                        marker_size, marker_size,
+                        "bold", 32, cream,
+                        align="center",
+                        valign="middle"
+                    )
+                )
+
+                elements.append(
+                    create_text(
+                        f"list_item_{index + 1}",
+                        item,
+                        170, y,
+                        835, int(row_height - 15),
+                        "body", item_font_size, dark,
+                        valign="middle",
+                        line_spacing=10
+                    )
+                )
+
     else:
         raise NotImplementedError(
             f"Layout '{layout}' has not been implemented yet."
