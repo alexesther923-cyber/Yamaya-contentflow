@@ -1177,6 +1177,40 @@ def generate_layout_slide(
                 )
             )
 
+        elif layout == "editorial_commentary":
+
+        background = orange
+
+        elements.append(
+            create_text(
+                "statement",
+                title or content,
+                75, 250, 930, 470,
+                "headline", 105, dark,
+                line_spacing=12
+            )
+        )
+
+        elements.append(
+            create_shape(
+                "divider",
+                "rectangle",
+                75, 790, 930, 8,
+                brown
+            )
+        )
+
+        if subtitle:
+            elements.append(
+                create_text(
+                    "explanation",
+                    subtitle,
+                    75, 860, 900, 280,
+                    "body", 39, dark,
+                    line_spacing=18
+                )
+            )
+
     else:
         raise NotImplementedError(
             f"Layout '{layout}' has not been implemented yet."
