@@ -948,14 +948,32 @@ def generate_layout_slide(
 
     elements = []
 
+    # Brand colour adapts to the slide background
+    brand_color = (
+        cream
+        if layout in ("bold_statement", "editorial_closing")
+        else dark
+    )
+
     elements.append(
         create_text(
             "brand",
             "YAMAYA AFRIQUE",
             75, 75, 600, 55,
-            "bold", 30, dark
+            "bold", 30, brand_color
         )
     )
+
+    if layout == "editorial_cover":
+
+        elements.append(
+            create_shape(
+                "cover_accent",
+                "rectangle",
+                75, 180, 140, 14,
+                orange
+            )
+        )
 
     if layout == "editorial_cover":
 
