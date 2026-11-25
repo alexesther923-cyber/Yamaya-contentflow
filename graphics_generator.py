@@ -1316,13 +1316,13 @@ def generate_layout_slide(
                     create_text(
                         f"list_item_{index + 1}",
                         item,
-                        170, y,
-                        835, int(row_height - 15),
+                        170, y - 13,
+                        835, 110,
                         "body", item_font_size, dark,
                         valign="middle",
                         line_spacing=10
-                    )
-                )
+                     )
+                 )
 
     else:
         raise NotImplementedError(
